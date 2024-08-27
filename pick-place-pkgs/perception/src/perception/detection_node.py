@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
-import json
 import struct
 import numpy as np
 import math
 import rospy
 import rospkg
 import cv2
-from tf.transformations import quaternion_from_euler
 from ultralytics import YOLO
 from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import String
@@ -27,6 +25,9 @@ class ObjectDetector():
         self.ARM_TO_CAM_z = rospy.get_param("~arm_to_cam_z")
         self.ARM_TO_CAM_euler_z = np.radians(rospy.get_param("~arm_to_cam_euler_z"))
         self.BOTTLE_LENGHT = rospy.get_param("~bottle_lenght")
+        self.PIXEL_SEARCH_LOWER = rospy.get_param("~pixel_search_lower")
+        self.PIXEL_SEARCH_UPPER = rospy.get_param("~pixel_search_upper")
+        self.MIN_B_T_DIST = rospy.get_param("~min_b_t_dist")
         
         self.model = YOLO(model_path)
 
@@ -47,35 +48,6 @@ class ObjectDetector():
         self.sub_points = rospy.Subscriber('/camera/depth_registered/points/', PointCloud2, self.point_cloud, queue_size=1)
 
         rospy.loginfo("Initialized detection node")
-
-    def get_cam_pose(self, keypoints):
-
-        px_coord = Point()
-        px_coord.x = -1
-        px_coord.y = -1
-        px_coord.z = -1 # euler angle z
-
-        max_l = 0
-
-        for b in keypoints:
-
-            thread_x = int(b[0][0])
-            thread_y = int(b[0][1])
-            base_x = int(b[1][0])
-            base_y = int(b[1][1])
-
-            if not ((base_x == 0 and base_y == 0) or (thread_x == 0 and thread_y ==0)):
-
-                lenght = np.sqrt(np.power(abs(thread_x - base_x),2) + np.power(abs(thread_y - base_y),2))
-
-                if lenght > max_l:
-
-                    max_l = lenght
-                    px_coord.x = int(abs(thread_x + base_x) / 2)
-                    px_coord.y = int(abs(thread_y + base_y) / 2)
-                    px_coord.z = math.atan2((thread_y - base_y), (thread_x - base_x))
-        
-        return px_coord
     
     def bytearray_to_val(self, array):
         
@@ -99,9 +71,9 @@ class ObjectDetector():
         cam_y = self.bytearray_to_val(self.points.data[y_idx:(y_idx + 4)])
         cam_z = self.bytearray_to_val(self.points.data[z_idx:(z_idx + 4)])
 
-        if math.isnan(cam_x) or math.isnan(cam_x) or math.isnan(cam_x):
+        if math.isnan(cam_x) or math.isnan(cam_y) or math.isnan(cam_z):
 
-            for i in range(-3, 4):
+            for i in range(self.PIXEL_SEARCH_LOWER, self.PIXEL_SEARCH_UPPER):
 
                 new_x_idx = x_idx + i * self.points.point_step()
                 y_idx = new_x_idx + self.points.fields[1].offset
@@ -111,7 +83,7 @@ class ObjectDetector():
                 cam_y = self.bytearray_to_val(self.points.data[y_idx:(y_idx + 4)])
                 cam_z = self.bytearray_to_val(self.points.data[z_idx:(z_idx + 4)])
 
-                if math.isnan(cam_x) or math.isnan(cam_x) or math.isnan(cam_x):
+                if math.isnan(cam_x) or math.isnan(cam_y) or math.isnan(cam_z):
                     continue
 
                 else:
@@ -124,11 +96,7 @@ class ObjectDetector():
             pose.position.x = cam_x - self.ARM_TO_CAM_x
             pose.position.y = - cam_y - self.ARM_TO_CAM_y
             pose.position.z = self.ARM_TO_CAM_z - cam_z
-
-            euler_z_world = - pose_px_coord.z + self.ARM_TO_CAM_euler_z
-            orientation = quaternion_from_euler(0, 0, euler_z_world)
-            pose.orientation.z = orientation[2]
-            pose.orientation.w = orientation[3]
+            pose.orientation.z = - pose_px_coord.z + self.ARM_TO_CAM_euler_z
 
         else:
             pose.position.x = -10
@@ -136,6 +104,73 @@ class ObjectDetector():
             pose.position.z = -10
 
         return pose
+    
+    def get_cam_pose(self, keypoints):
+        
+        distances_centre = []
+        centres = []
+        poses = []
+        z_coords = []
+        scores = []
+        valid = False
+        centre_coord = Point()
+        px_coord = Point()
+        px_coord.x = -1
+        px_coord.y = -1
+        px_coord.z = -1 # euler angle z
+        empty_pose = Pose()
+
+        for b in keypoints:
+
+            thread_x = int(b[0][0])
+            thread_y = int(b[0][1])
+            base_x = int(b[1][0])
+            base_y = int(b[1][1])
+
+            if not ((base_x == 0 and base_y == 0) or (thread_x == 0 and thread_y ==0)):
+
+                lenght = math.sqrt((thread_x - base_x)**2 + (thread_y - base_y)**2)
+                print(lenght)
+
+                if lenght > self.MIN_B_T_DIST:
+
+                    valid = True
+
+                    centre_coord.x = int(abs(thread_x + base_x) / 2)
+                    centre_coord.y = int(abs(thread_y + base_y) / 2)
+                    centre_coord.z = math.atan2((thread_y - base_y), (thread_x - base_x))
+
+                    centres.append(centre_coord)
+
+                    dist_centre = math.sqrt((centre_coord.x - 320)**2 + (centre_coord.y - 240)**2)
+
+                    distances_centre.append(dist_centre)
+
+                    pose = self.get_pose(centre_coord)
+
+                    poses.append(pose)
+
+                    z = pose.position.z
+
+                    z_coords.append(z)
+
+        if valid:
+
+            max_dist = max(distances_centre)
+            max_z = max(z_coords)
+
+            for i, bottle_d in enumerate(distances_centre):
+
+                score = 0.5 * (1 - (bottle_d / max_dist)) + 0.5 * (z_coords[i] / max_z)
+                scores.append(score)
+
+            selected_idx = scores.index(max(scores))
+            
+            return poses[selected_idx], centres[selected_idx]
+        
+        else:
+            
+            return empty_pose, px_coord
     
     def publish_image(self, pose_px_coord):
 
@@ -149,7 +184,6 @@ class ObjectDetector():
 
     def srv_detect(self, req=None):
 
-        pose_px_coord = Point()
         pose_3d_coord = Pose()
         result = String()
 
@@ -158,28 +192,24 @@ class ObjectDetector():
 
         if len(keypoints[0]) != 0:
 
-            pose_px_coord = self.get_cam_pose(keypoints)
+            pose_3d_coord, pos_px_coord = self.get_cam_pose(keypoints)
 
-            if pose_px_coord.x != -1:
+            if pos_px_coord.x == -1:
+                result.data = 'no accurate_detections'
 
-                pose_3d_coord = self.get_pose(pose_px_coord)
+            elif pose_3d_coord.position.x == -10:
+                result.data = 'no valid coord'
 
-                if pose_3d_coord.position.x == -10:
-                    result.data = 'no valid coord'
-
-                else: result.data = 'success'
+            else:
+                
+                result.data = 'success'
 
                 if self.pub_image.get_num_connections() > 0:
 
-                    self.publish_image(pose_px_coord)      
-
-            else:
-                result.data = 'no accurate detections'
+                    self.publish_image(pos_px_coord)   
 
         else:
             result.data = 'no detected bottles'
-
-        print(pose_3d_coord)
 
         response = DetectBottlesResponse()
         response.pose = pose_3d_coord
