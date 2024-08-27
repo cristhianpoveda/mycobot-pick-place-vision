@@ -139,7 +139,7 @@ class ObjectDetector():
                     centre_coord.y = int(abs(thread_y + base_y) / 2)
                     centre_coord.z = math.atan2((thread_y - base_y), (thread_x - base_x))
 
-                    centres.append(centre_coord)
+                    centres.append(centre_coord.copy())
 
                     dist_centre = math.sqrt((centre_coord.x - 320)**2 + (centre_coord.y - 240)**2)
 
