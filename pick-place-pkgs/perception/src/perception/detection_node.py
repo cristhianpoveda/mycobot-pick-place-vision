@@ -153,6 +153,10 @@ class ObjectDetector():
 
                     z_coords.append(z)
 
+        print(f"c: {centres}\n dc: {distances_centre}\n z: {z_coords}")
+
+        for p in poses: print(f"p: {p.position.x}")
+
         if valid:
 
             max_dist = max(distances_centre)
@@ -164,6 +168,8 @@ class ObjectDetector():
                 scores.append(score)
 
             selected_idx = scores.index(max(scores))
+
+            print(f"scores: {scores}")
             
             return poses[selected_idx], centres[selected_idx]
         
