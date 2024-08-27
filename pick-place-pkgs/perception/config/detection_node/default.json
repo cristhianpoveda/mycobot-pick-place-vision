@@ -1,3 +1,7 @@
 {
-    
+    "arm_to_cam_x": 0.0,
+    "arm_to_cam_y": 0.22,
+    "arm_to_cam_z": 0.707,
+    "arm_to_cam_euler_z": 90,
+    "bottle_lenght": 0.08
 }

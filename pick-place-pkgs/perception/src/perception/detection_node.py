@@ -20,18 +20,13 @@ class ObjectDetector():
     def __init__(self):
 
         rospack = rospkg.RosPack()
-        rospack.get_path('detection')
-        model_path = rospack.get_path('detection') + '/model/best.pt'
-        config_file = rospack.get_path('detection') + '/config/default.json'
+        model_path = rospack.get_path('perception') + '/model/best.pt'
 
-        with open(config_file, "r") as sim_params_file:
-            params = json.load(sim_params_file)
-
-            self.ARM_TO_CAM_x = params["arm_to_cam_x"]
-            self.ARM_TO_CAM_y = params["arm_to_cam_y"]
-            self.ARM_TO_CAM_z = params["arm_to_cam_z"]
-            self.ARM_TO_CAM_euler_z = np.radians(params["arm_to_cam_euler_z"])
-            self.BOTTLE_LENGHT = params["bottle_lenght"]
+        self.ARM_TO_CAM_x = rospy.get_param("~arm_to_cam_x")
+        self.ARM_TO_CAM_y = rospy.get_param("~arm_to_cam_y")
+        self.ARM_TO_CAM_z = rospy.get_param("~arm_to_cam_z")
+        self.ARM_TO_CAM_euler_z = np.radians(rospy.get_param("~arm_to_cam_euler_z"))
+        self.BOTTLE_LENGHT = rospy.get_param("~bottle_lenght")
         
         self.model = YOLO(model_path)
 
@@ -41,9 +36,9 @@ class ObjectDetector():
 
         self.image_np = np.zeros((640, 480, 3), dtype = "uint8")
 
-        self.srv_detection = rospy.Service('/locate/bottle', DetectBottles, self.srv_detect)
+        self.srv_detection = rospy.Service('~locate/bottle', DetectBottles, self.srv_detect)
 
-        self.pub_image = rospy.Publisher('/detection', Image, queue_size=0)
+        self.pub_image = rospy.Publisher('~detection', Image, queue_size=0)
 
         # self.sub = rospy.Subscriber('/camera/color/image_raw', Image, self.camera, queue_size=1)
         self.sub_image = rospy.Subscriber('/camera/color/image_raw', Image, self.camera, queue_size=1)
