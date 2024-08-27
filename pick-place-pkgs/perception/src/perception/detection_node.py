@@ -154,10 +154,6 @@ class ObjectDetector():
 
                     z_coords.append(z)
 
-        print(f"c: {centres}\n dc: {distances_centre}\n z: {z_coords}")
-
-        for p in poses: print(f"p: {p.position.x}")
-
         if valid:
 
             max_dist = max(distances_centre)
@@ -169,8 +165,6 @@ class ObjectDetector():
                 scores.append(score)
 
             selected_idx = scores.index(max(scores))
-
-            print(f"scores: {scores}")
             
             return poses[selected_idx], centres[selected_idx]
         
@@ -205,6 +199,9 @@ class ObjectDetector():
 
             elif pose_3d_coord.position.x == -10:
                 result.data = 'no valid coord'
+
+            elif -0.13 < pose_3d_coord.position.x < 0.13 or -0.27 < pose_3d_coord.position.x < -0.12:
+                result.data = 'outside box'
 
             else:
                 
