@@ -13,7 +13,7 @@ from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import String
 from sensor_msgs.msg import Image, PointCloud2
 from geometry_msgs.msg import Pose, Point
-from pick_place_srv.srv import DetectBottles, DetectBottlesResponse
+from pick_place_msgs.srv import DetectBottles, DetectBottlesResponse
 
 class ObjectDetector():
 
