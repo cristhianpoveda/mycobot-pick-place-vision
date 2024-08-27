@@ -130,7 +130,6 @@ class ObjectDetector():
             if not ((base_x == 0 and base_y == 0) or (thread_x == 0 and thread_y ==0)):
 
                 lenght = math.sqrt((thread_x - base_x)**2 + (thread_y - base_y)**2)
-                print(lenght)
 
                 if lenght > self.MIN_B_T_DIST:
 

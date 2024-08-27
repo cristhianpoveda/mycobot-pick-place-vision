@@ -6,5 +6,5 @@
     "bottle_lenght": 0.08,
     "pixel_search_lower": -3,
     "pixel_search_upper": 4,
-    "min_b_t_dist": 70
+    "min_b_t_dist": 50
 }
