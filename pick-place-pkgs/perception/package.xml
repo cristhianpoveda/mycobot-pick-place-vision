@@ -1,0 +1,13 @@
+<package>
+    <name>perception</name>
+    <version>0.1.0</version>
+    <description>
+        Bottle detection in world coordinates
+    </description>
+    <maintainer email="cristhianpoveda12@gmail.com">Cristhian Daniel Poveda Bravo</maintainer>
+    <license>None</license>
+
+    <buildtool_depend>catkin</buildtool_depend>
+    <build_depend>rospy</build_depend>
+    <run_depend>rospy</run_depend>
+</package>

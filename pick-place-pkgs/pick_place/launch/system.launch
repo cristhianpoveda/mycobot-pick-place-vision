@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<launch>
+
+    <arg name="robot" doc="Name of robot. ex: mycobot"/>
+
+    <!-- Realsense camera node -->
+    <include file="$(find realsense2_camera)/launch/rs_rgbd.launch">
+        <arg name="color_fps" value="30"/>
+        <arg name="color_height" value="480"/>
+        <arg name="color_width" value="640"/>
+        <arg name="depth_fps" value="30"/>
+        <arg name="depth_height" value="480"/>
+        <arg name="depth_width" value="640"/>
+    </include>
+
+    <!-- Object detection node -->
+    <include file="$(find perception)/launch/detection_node.launch">
+        <arg name="robot" value="$(arg robot)"/>
+    </include>
+
+    <!-- Arm controller -->
+    <include file="$(find arm_control)/launch/arm_control_node.launch">
+        <arg name="robot" value="$(arg robot)"/>
+    </include>
+
+    <!-- Pick place routine server -->
+    <include file="$(find pick_place)/launch/routine_node.launch">
+        <arg name="robot" value="$(arg robot)"/>
+    </include>
+
+</launch>

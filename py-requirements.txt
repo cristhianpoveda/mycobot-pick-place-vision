@@ -1,0 +1,4 @@
+ultralytics==8.0.239
+PyQt5
+PySide2
+pymycobot==3.4.6

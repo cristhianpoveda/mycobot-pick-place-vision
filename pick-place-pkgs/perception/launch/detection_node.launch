@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="robot" doc="Name of robot. ex: mycobot"/>
+
+  <group ns="$(arg robot)">  
+
+    <node pkg="perception" type="detection_node.py" name="detection_node" output="screen">
+        <rosparam command="load" file="$(find perception)/config/detection_node/default.json"/>
+
+    </node>
+
+  </group>
+
+</launch>

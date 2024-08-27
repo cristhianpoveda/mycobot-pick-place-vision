@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="robot" doc="Name of robot. ex: mycobot"/>
+
+  <group ns="$(arg robot)">  
+
+    <node pkg="arm_control" type="arm_control_node.py" name="arm_control_node" output="screen">
+        <rosparam command="load" file="$(find arm_control)/config/arm_control_node/default.json"/>
+
+    </node>
+
+  </group>
+
+</launch>

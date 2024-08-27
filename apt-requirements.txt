@@ -1,0 +1,7 @@
+build-essential
+python3-pip
+ros-noetic-rviz
+ros-noetic-realsense2-camera
+ros-noetic-realsense2-description
+ros-noetic-rgbd-launch
+git
