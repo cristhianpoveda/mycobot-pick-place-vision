@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(arm_control)
+project(pick_place_msgs)
 
 find_package(catkin REQUIRED COMPONENTS
   rospy

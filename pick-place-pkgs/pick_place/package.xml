@@ -1,5 +1,5 @@
 <package>
-    <name>detection</name>
+    <name>pick_place</name>
     <version>0.1.0</version>
     <description>
         Pick and place routine
