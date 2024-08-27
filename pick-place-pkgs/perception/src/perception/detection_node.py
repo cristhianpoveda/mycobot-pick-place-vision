@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import struct
+from copy import copy
 import numpy as np
 import math
 import rospy
@@ -139,7 +140,7 @@ class ObjectDetector():
                     centre_coord.y = int(abs(thread_y + base_y) / 2)
                     centre_coord.z = math.atan2((thread_y - base_y), (thread_x - base_x))
 
-                    centres.append(centre_coord.copy())
+                    centres.append(copy(centre_coord))
 
                     dist_centre = math.sqrt((centre_coord.x - 320)**2 + (centre_coord.y - 240)**2)
 
