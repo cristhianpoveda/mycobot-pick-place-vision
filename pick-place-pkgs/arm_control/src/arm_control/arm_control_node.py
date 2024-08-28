@@ -51,7 +51,7 @@ class ArmControl():
             response.status.data = False
             return response
 
-        coordinate_list = [coords.pose.position.x.data, coords.pose.position.y.data, coords.pose.position.z.data, coords.pose.orientation.x.data, coords.pose.orientation.y.data, coords.pose.orientation.z.data]
+        coordinate_list = [coords.pose.position.x, coords.pose.position.y, coords.pose.position.z, coords.pose.orientation.x, coords.pose.orientation.y, coords.pose.orientation.z]
         self.mc.sync_send_coords(coordinate_list, coords.speed.data, coords.mode.data, coords.timeout.data)
 
         rospy.sleep(self.CMD_STOP_TIME)
