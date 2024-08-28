@@ -54,7 +54,7 @@ class ArmControl():
         coordinate_list = [coords.pose.position.x, coords.pose.position.y, coords.pose.position.z, coords.pose.orientation.x, coords.pose.orientation.y, coords.pose.orientation.z]
         self.mc.sync_send_coords(coordinate_list, coords.speed.data, coords.mode.data, coords.timeout.data)
 
-        rospy.sleep(self.CMD_STOP_TIME)
+        rospy.sleep(1) # 1s
 
         if self.mc.is_in_position(coordinate_list, 1) != 1:
             response.status.data = False
@@ -77,7 +77,7 @@ class ArmControl():
 
         current_coords = self.mc.get_coords()
 
-        if abs(current_coords[coord.id] - coord.coord.data) > self.POSITION_TOLERANCE:
+        if abs(current_coords[coord.id.data] - coord.coord.data) > self.POSITION_TOLERANCE:
             response.status.data = False
 
         return response
@@ -94,7 +94,7 @@ class ArmControl():
 
         self.mc.sync_send_angles(angles.anlges.data, angles.speed.data, angles.timeout.data)
 
-        rospy.sleep(self.CMD_STOP_TIME)
+        rospy.sleep(1)
 
         if self.mc.is_in_position(angles.angles.data, 0) != 1:
             response.status.data = False
