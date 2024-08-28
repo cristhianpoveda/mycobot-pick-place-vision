@@ -2,7 +2,7 @@
 
 import rospy
 from pymycobot import MyCobot
-from std_srvs.srv import Empty, EmptyReponse
+from std_srvs.srv import Empty, EmptyResponse
 from pick_place_msgs.srv import SendCoords, SendCoordsResponse, SendCoord, SendCoordResponse, SendAngles, SendAnglesResponse
 
 class ArmControl():
@@ -10,6 +10,12 @@ class ArmControl():
     def __init__(self, node_name):
 
         self.mc = MyCobot("/dev/ttyACM0", 115200)
+
+        rospy.sleep(0.05)
+
+        self.arm_ready = self.mc.is_controller_connected()
+
+        if self.arm_ready != 1: rospy.loginfo(f"Mycobot is not available")
 
         self.MOVE_VEL = rospy.get_param("~move_vel")
         self.MODE = rospy.get_param("~mode")
@@ -42,14 +48,18 @@ class ArmControl():
         response = SendCoordsResponse()
         response.status.data = True
 
+        if self.mc.is_controller_connected() != 1:
+            rospy.loginfo(f"Mycobot is not available")
+            response.status.data = False
+            return response
+
         coordinate_list = [coords.pose.position.x, coords.pose.position.y, coords.pose.position.z, coords.pose.orientation.x, coords.pose.orientation.y, coords.pose.orientation.z]
         self.mc.sync_send_coords(coordinate_list, coords.speed, coords.mode, coords.timeout)
 
         rospy.sleep(0.05)
 
-        arrived = self.mc.is_in_position(coordinate_list, 1)
-
-        if arrived != 1: response.status.data = False
+        if self.mc.is_in_position(coordinate_list, 1) != 1:
+            response.status.data = False
         
         return response
     
@@ -58,13 +68,19 @@ class ArmControl():
         response = SendCoordResponse()
         response.status.data = True
 
+        if self.mc.is_controller_connected() != 1:
+            rospy.loginfo(f"Mycobot is not available")
+            response.status.data = False
+            return response
+
         self.mc.send_coord(coord.id, coord.coord, coord.speed)
 
         rospy.sleep(coord.delay)
 
         current_coords = self.mc.get_coords()
 
-        if abs(current_coords[coord.id] - coord.coord) > 20: response.status.data = False
+        if abs(current_coords[coord.id] - coord.coord) > 20:
+            response.status.data = False
 
         return response
     
@@ -73,24 +89,39 @@ class ArmControl():
         response = SendAnglesResponse()
         response.status.data = True
 
+        if self.mc.is_controller_connected() != 1:
+            rospy.loginfo(f"Mycobot is not available")
+            response.status.data = False
+            return response
+
         self.mc.sync_send_angles(angles.anlges, angles.speed, angles.timeout)
 
         rospy.sleep(0.05)
 
-        arrived = self.mc.is_in_position(angles.angles, 0)
-
-        if arrived != 1: response.status.data = False
+        if self.mc.is_in_position(angles.angles, 0) != 1:
+            response.status.data = False
     
     def pump_on_cb(self, req=None):
+
+        response = EmptyResponse()
+        
+        if self.mc.is_controller_connected() != 1:
+            rospy.loginfo(f"Mycobot is not available")
+            return response
 
         self.mc.set_basic_output(5, 0)
         rospy.sleep(self.PUMP_STOP_TIME)
 
-        response = EmptyReponse()
         return response
 
     def pump_off_cb(self, req=None):
             
+        response = EmptyResponse()
+
+        if self.mc.is_controller_connected() != 1:
+            rospy.loginfo(f"Mycobot is not available")
+            return response
+        
         self.mc.set_basic_output(5, 1)
         rospy.sleep(self.PUMP_STOP_TIME)
         self.mc.set_basic_output(2, 0)
@@ -98,7 +129,6 @@ class ArmControl():
         self.mc.set_basic_output(2, 1)
         rospy.sleep(self.PUMP_STOP_TIME)
 
-        response = EmptyReponse()
         return response
 
 if __name__ == '__main__':
