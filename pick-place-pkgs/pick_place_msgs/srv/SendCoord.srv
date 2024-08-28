@@ -1,0 +1,6 @@
+std_msgs/Int8 id
+std_msgs/Float64 coord
+std_msgs/Int8 speed
+std_msgs/Float64 delay
+---
+std_msgs/Bool status

@@ -1,10 +1,9 @@
 #! /usr/bin/env python3
 
-import time
 import rospy
 from pymycobot import MyCobot
 from std_srvs.srv import Empty, EmptyReponse
-from pick_place_msgs.srv import MoveArm, MoveArmResponse
+from pick_place_msgs.srv import SendCoords, SendCoordsResponse, SendCoord, SendCoordResponse, SendAngles, SendAnglesResponse
 
 class ArmControl():
 
@@ -19,7 +18,11 @@ class ArmControl():
         self.PUMP_STOP_TIME = rospy.get_param("~pump_stop_time")
         self.PUMP_VENT_DELAY = rospy.get_param("~pump_vent_delay")
 
-        self.movement_srv = rospy.Service('~arm/move', MoveArm, self.movement_cb)
+        self.move_coords_srv = rospy.Service('~arm/coords', SendCoords, self.coords_cb)
+
+        self.move_coord_srv = rospy.Service('~arm/coord', SendCoord, self.coord_cb)
+
+        self.move_angles_srv = rospy.Service('~arm/angles', SendAngles, self.angles_cb)
 
         self.pump_on_srv = rospy.Service('~pump/on', Empty, self.pump_on_cb)
 
@@ -34,24 +37,49 @@ class ArmControl():
 
         rospy.loginfo(f"Finished: {node_name}")
 
-    def movement_cb(self, pose):
+    def coords_cb(self, coords):
 
-        response = MoveArmResponse()
+        response = SendCoordsResponse()
         response.status.data = True
 
-        coordinate_list = [pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z]
-        self.mc.send_coords(coordinate_list, self.MOVE_VEL, self.MODE)
+        coordinate_list = [coords.pose.position.x, coords.pose.position.y, coords.pose.position.z, coords.pose.orientation.x, coords.pose.orientation.y, coords.pose.orientation.z]
+        self.mc.sync_send_coords(coordinate_list, coords.speed, coords.mode, coords.timeout)
+
+        rospy.sleep(0.05)
+
+        arrived = self.mc.is_in_position(coordinate_list, 1)
+
+        if arrived != 1: response.status.data = False
+        
+        return response
+    
+    def coord_cb(self, coord):
+
+        response = SendCoordResponse()
+        response.status.data = True
+
+        self.mc.send_coord(coord.id, coord.coord, coord.speed)
+
+        rospy.sleep(coord.delay)
 
         current_coords = self.mc.get_coords()
 
-        for idx, coord in enumerate(current_coords):
+        if abs(current_coords[coord.id] - coord.coord) > 20: response.status.data = False
 
-            if abs(coord - coordinate_list[idx]) > self.POSITION_TOLERANCE:
-                response.status.data = False
-                self.mc.send_angles([0,0,0,0,0,0], self.RETURN_VEL)
-                break
-        
         return response
+    
+    def angles_cb(self, angles):
+
+        response = SendAnglesResponse()
+        response.status.data = True
+
+        self.mc.sync_send_angles(angles.anlges, angles.speed, angles.timeout)
+
+        rospy.sleep(0.05)
+
+        arrived = self.mc.is_in_position(angles.angles, 0)
+
+        if arrived != 1: response.status.data = False
     
     def pump_on_cb(self, req=None):
 

@@ -1,0 +1,5 @@
+std_msgs/Float64MultiArray angles
+std_msgs/Int8 speed
+std_msgs/Float64 timeout
+---
+std_msgs/Bool status
