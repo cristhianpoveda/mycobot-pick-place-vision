@@ -9,20 +9,18 @@ class ArmControl():
 
     def __init__(self, node_name):
 
+        self.POSITION_TOLERANCE = rospy.get_param("~position_tolerance")
+        self.CMD_STOP_TIME = rospy.get_param("~cmd_stop_time")
+        self.PUMP_VENT_DELAY = rospy.get_param("~pump_vent_delay")
+        
         self.mc = MyCobot("/dev/ttyACM0", 115200)
 
-        rospy.sleep(0.05)
+        rospy.sleep(self.CMD_STOP_TIME)
 
         self.arm_ready = self.mc.is_controller_connected()
 
         if self.arm_ready != 1: rospy.loginfo(f"Mycobot is not available")
 
-        self.MOVE_VEL = rospy.get_param("~move_vel")
-        self.MODE = rospy.get_param("~mode")
-        self.POSITION_TOLERANCE = rospy.get_param("~position_tolerance")
-        self.RETURN_VEL = rospy.get_param("~return_vel")
-        self.PUMP_STOP_TIME = rospy.get_param("~pump_stop_time")
-        self.PUMP_VENT_DELAY = rospy.get_param("~pump_vent_delay")
 
         self.move_coords_srv = rospy.Service('~arm/coords', SendCoords, self.coords_cb)
 
@@ -56,7 +54,7 @@ class ArmControl():
         coordinate_list = [coords.pose.position.x, coords.pose.position.y, coords.pose.position.z, coords.pose.orientation.x, coords.pose.orientation.y, coords.pose.orientation.z]
         self.mc.sync_send_coords(coordinate_list, coords.speed, coords.mode, coords.timeout)
 
-        rospy.sleep(0.05)
+        rospy.sleep(self.CMD_STOP_TIME)
 
         if self.mc.is_in_position(coordinate_list, 1) != 1:
             response.status.data = False
@@ -96,7 +94,7 @@ class ArmControl():
 
         self.mc.sync_send_angles(angles.anlges, angles.speed, angles.timeout)
 
-        rospy.sleep(0.05)
+        rospy.sleep(self.CMD_STOP_TIME)
 
         if self.mc.is_in_position(angles.angles, 0) != 1:
             response.status.data = False
@@ -110,7 +108,7 @@ class ArmControl():
             return response
 
         self.mc.set_basic_output(5, 0)
-        rospy.sleep(self.PUMP_STOP_TIME)
+        rospy.sleep(self.CMD_STOP_TIME)
 
         return response
 
@@ -123,11 +121,11 @@ class ArmControl():
             return response
         
         self.mc.set_basic_output(5, 1)
-        rospy.sleep(self.PUMP_STOP_TIME)
+        rospy.sleep(self.CMD_STOP_TIME)
         self.mc.set_basic_output(2, 0)
         rospy.sleep(self.PUMP_VENT_DELAY)
         self.mc.set_basic_output(2, 1)
-        rospy.sleep(self.PUMP_STOP_TIME)
+        rospy.sleep(self.CMD_STOP_TIME)
 
         return response
 
