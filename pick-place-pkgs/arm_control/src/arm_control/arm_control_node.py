@@ -51,8 +51,8 @@ class ArmControl():
             response.status.data = False
             return response
 
-        coordinate_list = [coords.pose.position.x, coords.pose.position.y, coords.pose.position.z, coords.pose.orientation.x, coords.pose.orientation.y, coords.pose.orientation.z]
-        self.mc.sync_send_coords(coordinate_list, coords.speed, coords.mode, coords.timeout)
+        coordinate_list = [coords.pose.position.x.data, coords.pose.position.y.data, coords.pose.position.z.data, coords.pose.orientation.x.data, coords.pose.orientation.y.data, coords.pose.orientation.z.data]
+        self.mc.sync_send_coords(coordinate_list, coords.speed.data, coords.mode.data, coords.timeout.data)
 
         rospy.sleep(self.CMD_STOP_TIME)
 
@@ -71,13 +71,13 @@ class ArmControl():
             response.status.data = False
             return response
 
-        self.mc.send_coord(coord.id, coord.coord, coord.speed)
+        self.mc.send_coord(coord.id.data, coord.coord.data, coord.speed.data)
 
-        rospy.sleep(coord.delay)
+        rospy.sleep(coord.delay.data)
 
         current_coords = self.mc.get_coords()
 
-        if abs(current_coords[coord.id] - coord.coord) > 20:
+        if abs(current_coords[coord.id] - coord.coord.data) > self.POSITION_TOLERANCE:
             response.status.data = False
 
         return response
@@ -92,11 +92,11 @@ class ArmControl():
             response.status.data = False
             return response
 
-        self.mc.sync_send_angles(angles.anlges, angles.speed, angles.timeout)
+        self.mc.sync_send_angles(angles.anlges.data, angles.speed.data, angles.timeout.data)
 
         rospy.sleep(self.CMD_STOP_TIME)
 
-        if self.mc.is_in_position(angles.angles, 0) != 1:
+        if self.mc.is_in_position(angles.angles.data, 0) != 1:
             response.status.data = False
     
     def pump_on_cb(self, req=None):
