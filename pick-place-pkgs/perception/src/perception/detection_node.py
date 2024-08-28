@@ -200,7 +200,7 @@ class ObjectDetector():
             elif pose_3d_coord.position.x == -10:
                 result.data = 'no valid coord'
 
-            elif -0.13 < pose_3d_coord.position.x < 0.13 or -0.27 < pose_3d_coord.position.y < -0.12:
+            elif not (-0.13 < pose_3d_coord.position.x < 0.13 and -0.27 < pose_3d_coord.position.y < -0.12):
                 result.data = 'outside box'
 
             else:
