@@ -14,7 +14,7 @@ docker volume create --driver local \
 
 xhost +
 docker run \
-    --name=perception \
+    --name=pick \
     --net=host \
     --ipc=host \
     --env DISPLAY=${DISPLAY} \
