@@ -98,7 +98,7 @@ class ArmControl():
             response.status.data = False
             return response
 
-        self.mc.sync_send_angles(angles.anlges.data, angles.speed.data, angles.timeout.data)
+        self.mc.sync_send_angles(angles.angles.data, angles.speed.data, angles.timeout.data)
 
         rospy.sleep(4)
 
