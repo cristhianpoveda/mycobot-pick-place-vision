@@ -8,11 +8,7 @@ class PickPlaceRoutine():
 
     def __init__(self, node_name):
 
-        self.POSITION_TOLERANCE = rospy.get_param("~position_tolerance")
-        self.CMD_STOP_TIME = rospy.get_param("~cmd_stop_time")
-        self.PUMP_VENT_DELAY = rospy.get_param("~pump_vent_delay")
-
-        self.pump_off_srv = rospy.Service('~start/routine', Empty, self.routine_cb)
+        self.routine_srv = rospy.Service('~start/routine', Empty, self.routine_cb)
 
         rospy.loginfo(f"Initialized: {node_name}")
 
