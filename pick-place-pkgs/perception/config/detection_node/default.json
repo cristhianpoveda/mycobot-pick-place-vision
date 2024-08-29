@@ -1,5 +1,5 @@
 {
-    "arm_to_cam_x": 0.01,
+    "arm_to_cam_x": 0.015,
     "arm_to_cam_y": 0.22,
     "arm_to_cam_z": 0.707,
     "arm_to_cam_euler_z": 180,

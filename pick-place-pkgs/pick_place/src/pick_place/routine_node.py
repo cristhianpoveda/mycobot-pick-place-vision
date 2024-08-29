@@ -126,7 +126,7 @@ class PickPlaceRoutine():
         # PICKING X, Y, Z = 200
 
         coords_req = SendCoordsRequest()
-        picking_x = 1000 * selected_bottle.pose.position.x
+        picking_x = 1000 * selected_bottle.pose.position.x - 10
         picking_y = 1000 * selected_bottle.pose.position.y
         rospy.loginfo(f'Picking coords: x: {picking_x}, y: {picking_y}')
         coords_req.pose.position.x = picking_x
