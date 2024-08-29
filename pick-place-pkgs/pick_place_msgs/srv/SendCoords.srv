@@ -4,3 +4,4 @@ std_msgs/Int8 mode
 std_msgs/Float64 timeout
 ---
 std_msgs/Bool status
+std_msgs/Float64MultiArray current_pos

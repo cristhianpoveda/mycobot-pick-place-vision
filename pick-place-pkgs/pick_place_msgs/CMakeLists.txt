@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   genmsg
+  actionlib_msgs
 )
 
 add_service_files(
@@ -18,10 +19,17 @@ add_service_files(
   SendAngle.srv
 )
 
+add_action_files(
+  DIRECTORY action 
+  FILES
+  PickPlaceAction.action
+)
+
 generate_messages(
   DEPENDENCIES
   std_msgs
   geometry_msgs
+  actionlib_msgs
 )
 
 catkin_package(
@@ -32,6 +40,7 @@ catkin_package(
    std_msgs
    geometry_msgs
    message_runtime
+   actionlib_msgs
 )
 
 include_directories(

@@ -56,12 +56,14 @@ class ArmControl():
         coordinate_list = [coords.pose.position.x, coords.pose.position.y, coords.pose.position.z, coords.pose.orientation.x, coords.pose.orientation.y, coords.pose.orientation.z]
         self.mc.sync_send_coords(coordinate_list, coords.speed.data, coords.mode.data, coords.timeout.data)
 
-        rospy.sleep(5) # 1s
+        rospy.sleep(5)
 
         rospy.loginfo(f"Current: {self.mc.get_coords()}")
 
         if self.mc.is_in_position(coordinate_list, 1) != 1:
             response.status.data = False
+
+        response.current_pos.data = self.mc.get_coords()
         
         return response
     
