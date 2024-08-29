@@ -15,6 +15,7 @@ add_service_files(
   SendCoords.srv
   SendCoord.srv
   SendAngles.srv
+  SendAngle.srv
 )
 
 generate_messages(

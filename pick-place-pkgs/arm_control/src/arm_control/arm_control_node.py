@@ -3,7 +3,7 @@
 import rospy
 from pymycobot import MyCobot
 from std_srvs.srv import Empty, EmptyResponse
-from pick_place_msgs.srv import SendCoords, SendCoordsResponse, SendCoord, SendCoordResponse, SendAngles, SendAnglesResponse
+from pick_place_msgs.srv import SendCoords, SendCoordsResponse, SendCoord, SendCoordResponse, SendAngles, SendAnglesResponse, SendAngle, SendAngleResponse
 
 class ArmControl():
 
@@ -27,6 +27,8 @@ class ArmControl():
         self.move_coord_srv = rospy.Service('~arm/coord', SendCoord, self.coord_cb)
 
         self.move_angles_srv = rospy.Service('~arm/angles', SendAngles, self.angles_cb)
+
+        self.move_angle_srv = rospy.Service('~arm/angle', SendAngle, self.angle_cb)
 
         self.pump_on_srv = rospy.Service('~pump/on', Empty, self.pump_on_cb)
 
@@ -54,7 +56,7 @@ class ArmControl():
         coordinate_list = [coords.pose.position.x, coords.pose.position.y, coords.pose.position.z, coords.pose.orientation.x, coords.pose.orientation.y, coords.pose.orientation.z]
         self.mc.sync_send_coords(coordinate_list, coords.speed.data, coords.mode.data, coords.timeout.data)
 
-        rospy.sleep(1) # 1s
+        rospy.sleep(5) # 1s
 
         rospy.loginfo(f"Current: {self.mc.get_coords()}")
 
@@ -98,12 +100,33 @@ class ArmControl():
 
         self.mc.sync_send_angles(angles.anlges.data, angles.speed.data, angles.timeout.data)
 
-        rospy.sleep(1)
+        rospy.sleep(4)
 
         rospy.loginfo(f"Current: {self.mc.get_coords()}")
 
         if self.mc.is_in_position(angles.angles.data, 0) != 1:
             response.status.data = False
+
+        return response
+
+    def angle_cb(self, angle):
+
+        response = SendAngleResponse()
+        response.status.data = True
+
+        if self.mc.is_controller_connected() != 1:
+            rospy.loginfo(f"Mycobot is not available")
+            response.status.data = False
+            return response
+        
+        self.mc.send_angle(angle.id.data, angle.angle.data, angle.speed.data)
+
+        rospy.sleep(3)
+
+        if self.mc.get_angles() - angle.angle.data > 5:
+            response.status.data = False
+
+        return response
     
     def pump_on_cb(self, req=None):
 
