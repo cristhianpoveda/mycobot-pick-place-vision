@@ -141,7 +141,7 @@ class ArmControl():
 
         rospy.sleep(3)
 
-        if self.mc.get_angles() - angle.angle.data > 5:
+        if self.mc.get_angles()[5] - angle.angle.data > 5:
             response.status.data = False
 
         return response
