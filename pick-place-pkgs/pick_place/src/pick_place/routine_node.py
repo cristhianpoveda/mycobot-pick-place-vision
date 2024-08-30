@@ -120,7 +120,7 @@ class PickPlaceRoutine():
                 selected_bottle = detection_srv()
 
                 if selected_bottle.result.data == 'success':
-                    rospy.loginfo(f"Picking coordinates: x: {selected_bottle.pose.position.x}, y: {selected_bottle.pose.position.y}")
+                    rospy.loginfo(f"Selected bottle coords: x: {selected_bottle.pose.position.x}, y: {selected_bottle.pose.position.y}")
                     detected_valid = True
                     break
 
@@ -153,7 +153,7 @@ class PickPlaceRoutine():
         coords_req = SendCoordsRequest()
         picking_x = 1000 * selected_bottle.pose.position.x - 10
         picking_y = 1000 * selected_bottle.pose.position.y
-        rospy.loginfo(f'Picking coords: x: {picking_x}, y: {picking_y}')
+        rospy.loginfo(f'Moving to picking coords: x: {picking_x}, y: {picking_y}')
         coords_req.pose.position.x = picking_x
         coords_req.pose.position.y = picking_y
         coords_req.pose.position.z = 200
@@ -180,9 +180,9 @@ class PickPlaceRoutine():
         joints_req = GetJointsRequest()
         joints_req.type.data = 0
 
-        rospy.wait_for_service('/mycobot/arm_control_node/arm/get/angles')
+        rospy.wait_for_service('/mycobot/arm_control_node/arm/get/joints')
         try:
-            joints_srv = rospy.ServiceProxy('/mycobot/arm_control_node/arm/coords', GetJoints)
+            joints_srv = rospy.ServiceProxy('/mycobot/arm_control_node/arm/get/joints', GetJoints)
             joints_response = joints_srv(joints_req)
             a_J1 = joints_response.values.data[0]
             rospy.loginfo(f"Current J1: {a_J1}")

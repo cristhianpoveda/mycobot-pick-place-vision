@@ -21,7 +21,7 @@ class ArmControl():
 
         if self.arm_ready != 1: rospy.loginfo(f"Mycobot is not available")
 
-        self.get_angles_srv = rospy.Service('~arm/get/angles', GetJoints, self.get_joints_cb)
+        self.get_angles_srv = rospy.Service('~arm/get/joints', GetJoints, self.get_joints_cb)
 
         self.move_coords_srv = rospy.Service('~arm/coords', SendCoords, self.coords_cb)
 
