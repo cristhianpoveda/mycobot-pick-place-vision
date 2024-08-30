@@ -3,7 +3,7 @@
 import rospy
 from pymycobot import MyCobot
 from std_srvs.srv import Empty, EmptyResponse
-from pick_place_msgs.srv import SendCoords, SendCoordsResponse, SendCoord, SendCoordResponse, SendAngles, SendAnglesResponse, SendAngle, SendAngleResponse
+from pick_place_msgs.srv import GetJoints, GetJointsResponse, SendCoords, SendCoordsResponse, SendCoord, SendCoordResponse, SendAngles, SendAnglesResponse, SendAngle, SendAngleResponse
 
 class ArmControl():
 
@@ -21,6 +21,7 @@ class ArmControl():
 
         if self.arm_ready != 1: rospy.loginfo(f"Mycobot is not available")
 
+        self.get_angles_srv = rospy.Service('~arm/get/angles', GetJoints, self.get_joints_cb)
 
         self.move_coords_srv = rospy.Service('~arm/coords', SendCoords, self.coords_cb)
 
@@ -39,9 +40,24 @@ class ArmControl():
         rospy.spin()
         rospy.on_shutdown(self.shutdown_hook)
 
+    @property
+    def angles(self):
+        return self.mc.get_angles()
+
     def shutdown_hook(self):
 
         rospy.loginfo(f"Finished: {node_name}")
+
+    def get_joints_cb(self, req):
+
+        current = GetJointsResponse()
+
+        if req.type.data == 0:
+            current.values.data = self.mc.get_angles()
+        else:
+            current.values.data = self.mc.get_coords()
+
+        return current
 
     def coords_cb(self, coords):
 

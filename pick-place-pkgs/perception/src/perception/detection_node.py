@@ -138,7 +138,7 @@ class ObjectDetector():
 
                     centre_coord.x = int(abs(thread_x + base_x) / 2)
                     centre_coord.y = int(abs(thread_y + base_y) / 2)
-                    centre_coord.z = math.atan2((thread_y - base_y), (thread_x - base_x))
+                    centre_coord.z = np.degrees(math.atan2((thread_y - base_y), (thread_x - base_x)))
 
                     centres.append(copy(centre_coord))
 

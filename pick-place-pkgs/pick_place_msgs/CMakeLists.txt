@@ -17,6 +17,7 @@ add_service_files(
   SendCoord.srv
   SendAngles.srv
   SendAngle.srv
+  GetJoints.srv
 )
 
 add_action_files(

@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 import rospy
-from pick_place_msgs.srv import DetectBottles, DetectBottlesResponse, SendCoords, SendCoordsRequest, SendCoordsResponse, SendCoord, SendCoordRequest, SendCoordResponse, SendAngles, SendAnglesRequest, SendAnglesResponse, SendAngle, SendAngleRequest, SendAngleResponse
+from pick_place_msgs.srv import GetJoints, GetJointsRequest, GetJointsResponse, DetectBottles, DetectBottlesResponse, SendCoords, SendCoordsRequest, SendCoordsResponse, SendCoord, SendCoordRequest, SendCoordResponse, SendAngles, SendAnglesRequest, SendAnglesResponse, SendAngle, SendAngleRequest, SendAngleResponse
 import actionlib
 from pick_place_msgs.msg import PickPlaceAction, PickPlaceResult, PickPlaceFeedback
 
@@ -48,6 +48,40 @@ class PickPlaceRoutine():
 
         self._feedback.feedback.data = msg
         self._as.publish_feedback(self._feedback)
+
+    def get_picking_angle(self, bottle_a, J1):
+
+        a_cam = bottle_a
+        if a_cam == 0:
+            a_arm = 180
+        else:
+            a_arm = - (a_cam / abs(a_cam)) * (180 - abs(a_cam))
+        if abs(a_arm) > 90:
+            a_perpendicular = (a_arm /abs(a_arm)) * (abs(a_arm) - 90)
+        elif a_arm == 0:
+            a_perpendicular = -90
+        else:
+            a_perpendicular = (a_arm /abs(a_arm)) * (abs(a_arm) + 90)
+
+        if a_perpendicular > 0:
+
+            pick_a = - (180 - a_perpendicular)
+
+        else: pick_a = a_perpendicular
+
+        a_j6 = J1 - pick_a
+
+        if abs(a_j6) > 90:
+            a_j6t = -(a_j6/abs(a_j6)) * (180 - abs(a_j6))
+        else: a_j6t = a_j6
+
+        if abs(a_j6t) > 90:
+
+            rospy.loginfo(f"No feasible rotation found")
+            a_j6t = 0
+
+        return a_j6t
+
 
     def routine_cb(self, req=None):
 
@@ -101,25 +135,16 @@ class PickPlaceRoutine():
 
         # BOX CENTRE
         
-        coords_req = SendCoordsRequest()
-        coords_req.pose.position.x = -10.0
-        coords_req.pose.position.y = -220.0
-        coords_req.pose.position.z = 220.0
-        coords_req.pose.orientation.x = -180.0
-        coords_req.pose.orientation.y = 0.0
-        coords_req.pose.orientation.z = -90.0
-        coords_req.speed.data = 5
-        coords_req.mode.data = 0
-        coords_req.timeout.data = 7
-        
-        rospy.wait_for_service('/mycobot/arm_control_node/arm/coords')
+        angles_req.angles.data = [-75.41, -21.97, -61.69, -7.2, 0, 0]
+        angles_req.speed.data = 20
+        angles_req.timeout.data = 7
+
+        rospy.wait_for_service('/mycobot/arm_control_node/arm/angles')
         try:
-            coords_srv = rospy.ServiceProxy('/mycobot/arm_control_node/arm/coords', SendCoords)
-            coords_response = coords_srv(coords_req)
-            rospy.loginfo(f"Current pos: {coords_response.current_pos.data}")
+            angles_response = angles_srv(angles_req)
 
         except rospy.ServiceException as e:
-            rospy.loginfo("Move to box centre failed: %s"%e)
+            rospy.loginfo("Request move to box centre failed: %s"%e)
             self.fail_msg()
         
 
@@ -141,13 +166,50 @@ class PickPlaceRoutine():
         
         rospy.wait_for_service('/mycobot/arm_control_node/arm/coords')
         try:
+            coords_srv = rospy.ServiceProxy('/mycobot/arm_control_node/arm/coords', SendCoords)
             coords_response = coords_srv(coords_req)
             rospy.loginfo(f"Current pos: {coords_response.current_pos.data}")
 
         except rospy.ServiceException as e:
             rospy.loginfo("Move picking position failed: %s"%e)
             self.fail_msg()
+
         
+        # ROTATE PUMP HEAD FOR PERPENDICULAR PICKING
+
+        joints_req = GetJointsRequest()
+        joints_req.type.data = 0
+
+        rospy.wait_for_service('/mycobot/arm_control_node/arm/get/angles')
+        try:
+            joints_srv = rospy.ServiceProxy('/mycobot/arm_control_node/arm/coords', GetJoints)
+            joints_response = joints_srv(joints_req)
+            a_J1 = joints_response.values.data[0]
+            rospy.loginfo(f"Current J1: {a_J1}")
+
+        except rospy.ServiceException as e:
+            rospy.loginfo("Get Joint values failed: %s"%e)
+            self.fail_msg()
+
+        a_j6t = self.get_picking_angle(selected_bottle.pose.orientation.z, a_J1)
+
+        angle_req = SendAngleRequest()
+        angle_req.id.data = 6
+        angle_req.angle.data = a_j6t
+        angle_req.speed.data = 20
+
+        rospy.loginfo(f"Target tool rotation angle: {a_j6t}")
+
+        rospy.wait_for_service('/mycobot/arm_control_node/arm/angle')
+        try:
+            angle_srv = rospy.ServiceProxy('/mycobot/arm_control_node/arm/angle', SendAngle)
+            angle_response = angle_srv(angle_req)
+
+        except rospy.ServiceException as e:
+            rospy.loginfo("Request move angle failed: %s"%e)
+            self.fail_msg()
+
+
 
         self._result.result.data = True
         rospy.loginfo('Pick and place: Succeeded')
