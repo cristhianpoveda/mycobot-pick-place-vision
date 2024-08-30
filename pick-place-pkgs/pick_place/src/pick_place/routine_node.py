@@ -104,6 +104,7 @@ class PickPlaceRoutine():
         except rospy.ServiceException as e:
             rospy.loginfo("Request move angles failed: %s"%e)
             self.fail_msg()
+            return
         
 
         # SELECT BOTTLE TO PICK
@@ -127,10 +128,12 @@ class PickPlaceRoutine():
             except rospy.ServiceException as e:
                 rospy.loginfo("Request detection failed: %s"%e)
                 self.fail_msg()
+                return
         
         if not detected_valid:
             rospy.loginfo(f'No viable bottle to pick: {selected_bottle.result.data}')
             self.fail_msg()
+            return
         
 
         # BOX CENTRE
@@ -146,6 +149,7 @@ class PickPlaceRoutine():
         except rospy.ServiceException as e:
             rospy.loginfo("Request move to box centre failed: %s"%e)
             self.fail_msg()
+            return
         
 
         # PICKING X, Y, Z = 200
@@ -173,6 +177,7 @@ class PickPlaceRoutine():
         except rospy.ServiceException as e:
             rospy.loginfo("Move picking position failed: %s"%e)
             self.fail_msg()
+            return
 
         
         # ROTATE PUMP HEAD FOR PERPENDICULAR PICKING
@@ -190,6 +195,7 @@ class PickPlaceRoutine():
         except rospy.ServiceException as e:
             rospy.loginfo("Get Joint values failed: %s"%e)
             self.fail_msg()
+            return
 
         a_j6t = self.get_picking_angle(selected_bottle.pose.orientation.z, a_J1)
 
@@ -198,7 +204,7 @@ class PickPlaceRoutine():
         angle_req.angle.data = a_j6t
         angle_req.speed.data = 20
 
-        rospy.loginfo(f"Target tool rotation angle: {a_j6t}")
+        rospy.loginfo(f"Target tool angle: {a_j6t}")
 
         rospy.wait_for_service('/mycobot/arm_control_node/arm/angle')
         try:
@@ -208,7 +214,7 @@ class PickPlaceRoutine():
         except rospy.ServiceException as e:
             rospy.loginfo("Request move angle failed: %s"%e)
             self.fail_msg()
-
+            return
 
 
         self._result.result.data = True

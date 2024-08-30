@@ -1,5 +1,5 @@
 std_msgs/Int8 id
 std_msgs/Float64 angle
-std_msgs/Float64 speed
+std_msgs/Int8 speed
 ---
 std_msgs/Bool status
