@@ -131,7 +131,7 @@ class PickPlaceRoutine():
 
         try:
             rospy.wait_for_service('/mycobot/arm_control_node/arm/angles', timeout=3)
-        except rospy.ServiceException as e:
+        except rospy.ROSException as e:
             rospy.loginfo(f"Send angles service unavailable:\n{e}")
             self.fail_msg()
             return
@@ -156,7 +156,7 @@ class PickPlaceRoutine():
 
             try:
                 rospy.wait_for_service('/mycobot/detection_node/locate/bottle', timeout=3)
-            except rospy.ServiceException as e:
+            except rospy.ROSException as e:
                 rospy.loginfo(f"Detection service unavailable:\n{e}")
                 self.fail_msg()
                 return
@@ -189,7 +189,7 @@ class PickPlaceRoutine():
 
         try:
             rospy.wait_for_service('/mycobot/arm_control_node/arm/angles', timeout=3)
-        except rospy.ServiceException as e:
+        except rospy.ROSException as e:
             rospy.loginfo(f"Send angles service unavailable:\n{e}")
             self.fail_msg()
             return
@@ -221,7 +221,7 @@ class PickPlaceRoutine():
 
         try:
             rospy.wait_for_service('/mycobot/arm_control_node/arm/coords', timeout=3)
-        except rospy.ServiceException as e:
+        except rospy.ROSException as e:
             rospy.loginfo(f"Send coords service unavailable:\n{e}")
             self.fail_msg()
             return
@@ -244,7 +244,7 @@ class PickPlaceRoutine():
 
         try:
             rospy.wait_for_service('/mycobot/arm_control_node/arm/get/joints', timeout=3)
-        except rospy.ServiceException as e:
+        except rospy.ROSException as e:
             rospy.loginfo(f"Get joints service unavailable:\n{e}")
             self.fail_msg()
             return
@@ -271,7 +271,7 @@ class PickPlaceRoutine():
 
         try:
             rospy.wait_for_service('/mycobot/arm_control_node/arm/angle', timeout=3)
-        except rospy.ServiceException as e:
+        except rospy.ROSException as e:
             rospy.loginfo(f"Send angle service unavailable:\n{e}")
             self.fail_msg()
             return
@@ -291,7 +291,7 @@ class PickPlaceRoutine():
 
         try:
             rospy.wait_for_service('/mycobot/arm_control_node/pump/on', timeout=3)
-        except rospy.ServiceException as e:
+        except rospy.ROSException as e:
             rospy.loginfo(f"Turn on pump service unavailable:\n{e}")
             self.fail_msg()
             return
@@ -318,7 +318,7 @@ class PickPlaceRoutine():
 
         try:
             rospy.wait_for_service('/mycobot/arm_control_node/arm/coord', timeout=3)
-        except rospy.ServiceException as e:
+        except rospy.ROSException as e:
             rospy.loginfo(f"Send coord service unavailable:\n{e}")
             self.fail_msg()
             return
