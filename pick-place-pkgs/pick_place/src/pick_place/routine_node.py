@@ -129,7 +129,13 @@ class PickPlaceRoutine():
         angles_req.speed.data = 30
         angles_req.timeout.data = 7
 
-        rospy.wait_for_service('/mycobot/arm_control_node/arm/angles')
+        try:
+            rospy.wait_for_service('/mycobot/arm_control_node/arm/angles', timeout=3)
+        except rospy.ServiceException as e:
+            rospy.loginfo(f"Send angles service unavailable:\n{e}")
+            self.fail_msg()
+            return
+
         try:
             angles_srv = rospy.ServiceProxy('/mycobot/arm_control_node/arm/angles', SendAngles)
             angles_response = angles_srv(angles_req)
@@ -148,7 +154,13 @@ class PickPlaceRoutine():
 
         for i in range(3):
 
-            rospy.wait_for_service('/mycobot/detection_node/locate/bottle')
+            try:
+                rospy.wait_for_service('/mycobot/detection_node/locate/bottle', timeout=3)
+            except rospy.ServiceException as e:
+                rospy.loginfo(f"Detection service unavailable:\n{e}")
+                self.fail_msg()
+                return
+            
             try:
                 detection_srv = rospy.ServiceProxy('/mycobot/detection_node/locate/bottle', DetectBottles)
                 selected_bottle = detection_srv()
@@ -175,7 +187,13 @@ class PickPlaceRoutine():
         angles_req.speed.data = 20
         angles_req.timeout.data = 7
 
-        rospy.wait_for_service('/mycobot/arm_control_node/arm/angles')
+        try:
+            rospy.wait_for_service('/mycobot/arm_control_node/arm/angles', timeout=3)
+        except rospy.ServiceException as e:
+            rospy.loginfo(f"Send angles service unavailable:\n{e}")
+            self.fail_msg()
+            return
+
         try:
             angles_response = angles_srv(angles_req)
 
@@ -200,8 +218,14 @@ class PickPlaceRoutine():
         coords_req.speed.data = 5
         coords_req.mode.data = 1
         coords_req.timeout.data = 7
+
+        try:
+            rospy.wait_for_service('/mycobot/arm_control_node/arm/coords', timeout=3)
+        except rospy.ServiceException as e:
+            rospy.loginfo(f"Send coords service unavailable:\n{e}")
+            self.fail_msg()
+            return
         
-        rospy.wait_for_service('/mycobot/arm_control_node/arm/coords')
         try:
             coords_srv = rospy.ServiceProxy('/mycobot/arm_control_node/arm/coords', SendCoords)
             coords_response = coords_srv(coords_req)
@@ -218,7 +242,13 @@ class PickPlaceRoutine():
         joints_req = GetJointsRequest()
         joints_req.type.data = 0
 
-        rospy.wait_for_service('/mycobot/arm_control_node/arm/get/joints')
+        try:
+            rospy.wait_for_service('/mycobot/arm_control_node/arm/get/joints', timeout=3)
+        except rospy.ServiceException as e:
+            rospy.loginfo(f"Get joints service unavailable:\n{e}")
+            self.fail_msg()
+            return
+
         try:
             joints_srv = rospy.ServiceProxy('/mycobot/arm_control_node/arm/get/joints', GetJoints)
             joints_response = joints_srv(joints_req)
@@ -239,7 +269,13 @@ class PickPlaceRoutine():
 
         rospy.loginfo(f"Target tool angle: {round(a_j6t,1)}")
 
-        rospy.wait_for_service('/mycobot/arm_control_node/arm/angle')
+        try:
+            rospy.wait_for_service('/mycobot/arm_control_node/arm/angle', timeout=3)
+        except rospy.ServiceException as e:
+            rospy.loginfo(f"Send angle service unavailable:\n{e}")
+            self.fail_msg()
+            return
+
         try:
             angle_srv = rospy.ServiceProxy('/mycobot/arm_control_node/arm/angle', SendAngle)
             angle_response = angle_srv(angle_req)
@@ -253,7 +289,13 @@ class PickPlaceRoutine():
 
         pump_req = EmptyRequest()
 
-        rospy.wait_for_service('/mycobot/arm_control_node/pump/on')
+        try:
+            rospy.wait_for_service('/mycobot/arm_control_node/pump/on', timeout=3)
+        except rospy.ServiceException as e:
+            rospy.loginfo(f"Turn on pump service unavailable:\n{e}")
+            self.fail_msg()
+            return
+
         try:
             pump_on_srv = rospy.ServiceProxy('/mycobot/arm_control_node/pump/on', Empty)
             pump_on_srv(pump_req)
@@ -274,7 +316,13 @@ class PickPlaceRoutine():
         coord_req.speed.data = 10
         coord_req.delay.data = 4
 
-        rospy.wait_for_service('/mycobot/arm_control_node/arm/coord')
+        try:
+            rospy.wait_for_service('/mycobot/arm_control_node/arm/coord', timeout=3)
+        except rospy.ServiceException as e:
+            rospy.loginfo(f"Send coord service unavailable:\n{e}")
+            self.fail_msg()
+            return
+
         try:
             coord_srv = rospy.ServiceProxy('/mycobot/arm_control_node/arm/coord', SendCoord)
             coord_response = coord_srv(coord_req)
