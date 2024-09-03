@@ -118,7 +118,7 @@ class PickPlaceRoutine():
 
     def routine_cb(self, req=None):
 
-        rospy.loginfo('Executing action: Picking selected bottles')
+        rospy.loginfo('Executing action: Picking selected bottle')
 
         # INIT HOME POSITION
 
@@ -135,7 +135,7 @@ class PickPlaceRoutine():
             angles_response = angles_srv(angles_req)
 
         except rospy.ServiceException as e:
-            rospy.loginfo("Request move angles failed: %s"%e)
+            rospy.loginfo(f"Request move angles failed:\n{e}")
             self.fail_msg()
             return
         
@@ -154,12 +154,12 @@ class PickPlaceRoutine():
                 selected_bottle = detection_srv()
 
                 if selected_bottle.result.data == 'success':
-                    rospy.loginfo(f"Selected bottle coords: x: {selected_bottle.pose.position.x}, y: {selected_bottle.pose.position.y}")
+                    rospy.loginfo(f"Selected bottle coords [m]: x: {round(selected_bottle.pose.position.x,3)}, y: {round(selected_bottle.pose.position.y,2)}, z: {round(selected_bottle.pose.position.z,2)}")
                     detected_valid = True
                     break
 
             except rospy.ServiceException as e:
-                rospy.loginfo("Request detection failed: %s"%e)
+                rospy.loginfo(f"Request detection failed:\n{e}")
                 self.fail_msg()
                 return
         
@@ -180,7 +180,7 @@ class PickPlaceRoutine():
             angles_response = angles_srv(angles_req)
 
         except rospy.ServiceException as e:
-            rospy.loginfo("Request move to box centre failed: %s"%e)
+            rospy.loginfo(f"Request move to box centre failed:\n{e}")
             self.fail_msg()
             return
         
@@ -190,7 +190,7 @@ class PickPlaceRoutine():
         coords_req = SendCoordsRequest()
         picking_x = 1000 * selected_bottle.pose.position.x - 10
         picking_y = 1000 * selected_bottle.pose.position.y
-        rospy.loginfo(f'Moving to picking coords: x: {picking_x}, y: {picking_y}')
+        rospy.loginfo(f'Moving to picking coords [mm]: x: {round(picking_x,0)}, y: {round(picking_y, 0)}')
         coords_req.pose.position.x = picking_x
         coords_req.pose.position.y = picking_y
         coords_req.pose.position.z = 200
@@ -208,7 +208,7 @@ class PickPlaceRoutine():
             rospy.loginfo(f"Current pos: {coords_response.current_pos.data}")
 
         except rospy.ServiceException as e:
-            rospy.loginfo("Move picking position failed: %s"%e)
+            rospy.loginfo("fMove picking position failed:\n{e}")
             self.fail_msg()
             return
 
@@ -223,10 +223,10 @@ class PickPlaceRoutine():
             joints_srv = rospy.ServiceProxy('/mycobot/arm_control_node/arm/get/joints', GetJoints)
             joints_response = joints_srv(joints_req)
             a_J1 = joints_response.values.data[0]
-            rospy.loginfo(f"Current J1: {a_J1}")
+            rospy.loginfo(f"Current J1: {round(a_J1,1)}")
 
         except rospy.ServiceException as e:
-            rospy.loginfo("Get Joint values failed: %s"%e)
+            rospy.loginfo(f"Get Joint values failed:\n{e}")
             self.fail_msg()
             return
 
@@ -237,7 +237,7 @@ class PickPlaceRoutine():
         angle_req.angle.data = a_j6t
         angle_req.speed.data = 20
 
-        rospy.loginfo(f"Target tool angle: {a_j6t}")
+        rospy.loginfo(f"Target tool angle: {round(a_j6t,1)}")
 
         rospy.wait_for_service('/mycobot/arm_control_node/arm/angle')
         try:
@@ -245,7 +245,7 @@ class PickPlaceRoutine():
             angle_response = angle_srv(angle_req)
 
         except rospy.ServiceException as e:
-            rospy.loginfo("Request move angle failed: %s"%e)
+            rospy.loginfo(f"Request move angle failed:\n{e}")
             self.fail_msg()
             return
 
@@ -259,7 +259,7 @@ class PickPlaceRoutine():
             pump_on_srv(pump_req)
 
         except rospy.ServiceException as e:
-            rospy.loginfo("Request suction pump on failed:\n%s"%e)
+            rospy.loginfo(f"Request suction pump on failed:\n{e}")
             self.fail_msg()
             return
 
@@ -268,8 +268,8 @@ class PickPlaceRoutine():
 
         coord_req = SendCoordRequest()
         coord_req.id.data = 3
-        tool_height = selected_bottle.pose.position.z + 73.1
-        rospy.loginfo(f'Tool picking height: {tool_height} mm')
+        tool_height = 1000 * selected_bottle.pose.position.z + 73.1
+        rospy.loginfo(f'Tool picking height [mm]: {round(tool_height,1)}')
         coord_req.coord.data = tool_height
         coord_req.speed.data = 10
         coord_req.delay.data = 4
@@ -280,7 +280,7 @@ class PickPlaceRoutine():
             coord_response = coord_srv(coord_req)
 
         except rospy.ServiceException as e:
-            rospy.loginfo("Request lowering tool failed:\n%s"%e)
+            rospy.loginfo(f"Request lowering tool failed:\n{e}")
             self.fail_msg()
             return
         
