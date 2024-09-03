@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   DetectBottles.srv
+  VerifyPicking.srv
   SendCoords.srv
   SendCoord.srv
   SendAngles.srv
