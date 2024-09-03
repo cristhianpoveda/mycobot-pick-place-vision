@@ -222,6 +222,11 @@ class ObjectDetector():
 
         return response
     
+    def srv_verify(self, req=None):
+        response = VerifyPickingResponse()
+        return response
+        
+    
     def point_cloud(self, points_msg):
         
         self.points = points_msg
