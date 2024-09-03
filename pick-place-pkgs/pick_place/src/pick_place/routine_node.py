@@ -358,18 +358,24 @@ class PickPlaceRoutine():
         #     self.fail_msg()
         #     return
 
-        # # LIFT BOTTLE Z=220
+        # LIFT BOTTLE Z=220
 
-        # coord_req.coord.data = 220
+        coord_req.coord.data = 220
 
-        # rospy.wait_for_service('/mycobot/arm_control_node/arm/coord')
-        # try:
-        #     coord_response = coord_srv(coord_req)
+        try:
+            rospy.wait_for_service('/mycobot/arm_control_node/arm/coord', timeout=3)
+        except rospy.ROSException as e:
+            rospy.loginfo(f"Send coord service unavailable:\n{e}")
+            self.fail_msg()
+            return
 
-        # except rospy.ServiceException as e:
-        #     rospy.loginfo("Request lifting bottle failed:\n%s"%e)
-        #     self.fail_msg()
-        #     return
+        try:
+            coord_response = coord_srv(coord_req)
+
+        except rospy.ServiceException as e:
+            rospy.loginfo(f"Request lifting bottle failed:\n{e}")
+            self.fail_msg()
+            return
         
         # # MOVE TO VERIFICATION POSITION
 
