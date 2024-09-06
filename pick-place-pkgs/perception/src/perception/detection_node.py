@@ -223,7 +223,43 @@ class ObjectDetector():
         return response
     
     def srv_verify(self, req=None):
+
         response = VerifyPickingResponse()
+        response.pick.data = False
+        response.orientation.data = -1
+
+        centre = Point()
+
+        detections = self.model(self.image_np, conf=0.7, verbose=False)
+        keypoints = detections[0].keypoints.xy
+
+        if len(keypoints[0]) != 0:
+
+            for point in keypoints:
+
+                thread_x = int(point[0][0])
+                thread_y = int(point[0][1])
+                base_x = int(point[1][0])
+                base_y = int(point[1][1])
+
+                if 190 < thread_x < 350 and 190 < base_x < 350 and 220 < thread_y < 300 and 220 < base_y < 300:
+                    
+                    centre.x = int(abs(thread_x + base_x) / 2)
+                    centre.y = int(abs(thread_y + base_y) / 2)
+
+                    pos = self.get_pose(centre)
+
+                    if pos.position.z > 0.25:
+
+                        if thread_x < base_x:
+                            response.orientation.data = 180
+
+                        else:
+                            response.orientation.data = 0
+
+                        response.pick.data = True
+                        break
+
         return response
         
     
@@ -237,7 +273,7 @@ class ObjectDetector():
             self.image_np = self.bridge.imgmsg_to_cv2(image_msg, "rgb8")
                 
         except CvBridgeError as e:
-            print(e)
+            rospy.loginfo(f"Img msg to cvbride failed:\n{e}")
 
 if __name__ == '__main__':
 
