@@ -332,6 +332,30 @@ class PickPlaceRoutine():
         
         rospy.sleep(1)
 
+
+        # LIFT BOTTLE Z=180
+
+        coord_req.id.data = 3
+        coord_req.coord.data = 180
+        coord_req.speed.data = 10
+        coord_req.delay.data = 4
+
+        try:
+            rospy.wait_for_service('/mycobot/arm_control_node/arm/coord', timeout=3)
+        except rospy.ROSException as e:
+            rospy.loginfo(f"Send coord service unavailable:\n{e}")
+            self.fail_msg()
+            return
+
+        try:
+            coord_srv = rospy.ServiceProxy('/mycobot/arm_control_node/arm/coord', SendCoord)
+            coord_response = coord_srv(coord_req)
+
+        except rospy.ServiceException as e:
+            rospy.loginfo(f"Request lifting bottle failed:\n{e}")
+            self.fail_msg()
+            return
+
         
         # MOVE TO VERIFICATION POSITION
 
