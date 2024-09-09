@@ -144,7 +144,7 @@ class ObjectDetector():
 
                     picking_distance = math.sqrt(pose.position.x**2 + pose.position.y**2)
 
-                    if picking_distance < 241:
+                    if picking_distance < 0.241:
 
                         valid = True
 

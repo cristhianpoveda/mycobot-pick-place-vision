@@ -230,7 +230,7 @@ class PickPlaceRoutine():
             rospy.loginfo(f"Current pos: {coords_response.current_pos.data}")
 
         except rospy.ServiceException as e:
-            rospy.loginfo("fMove picking position failed:\n{e}")
+            rospy.loginfo(f"Move picking position failed:\n{e}")
             self.fail_msg()
             return
 
