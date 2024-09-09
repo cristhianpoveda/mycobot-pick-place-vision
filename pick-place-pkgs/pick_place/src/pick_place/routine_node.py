@@ -1,7 +1,8 @@
 #! /usr/bin/env python3
 
 import rospy
-from pick_place_msgs.srv import GetJoints, GetJointsRequest, GetJointsResponse, DetectBottles, DetectBottlesResponse, SendCoords, SendCoordsRequest, SendCoordsResponse, SendCoord, SendCoordRequest, SendCoordResponse, SendAngles, SendAnglesRequest, SendAnglesResponse, SendAngle, SendAngleRequest, SendAngleResponse
+import math
+from pick_place_msgs.srv import VerifyPicking, VerifyPickingRequest, GetJoints, GetJointsRequest, DetectBottles, SendCoords, SendCoordsRequest, SendCoord, SendCoordRequest, SendAngles, SendAnglesRequest, SendAngle, SendAngleRequest
 import actionlib
 from pick_place_msgs.msg import PickPlaceAction, PickPlaceResult, PickPlaceFeedback
 from std_srvs.srv import Empty, EmptyRequest
@@ -129,6 +130,8 @@ class PickPlaceRoutine():
 
         rospy.loginfo('Executing action: Picking selected bottle')
 
+        success = True
+
         # INIT HOME POSITION
 
         self.feedback_msg(f'Moving to home position')
@@ -161,28 +164,25 @@ class PickPlaceRoutine():
 
         detected_valid = False
 
-        for i in range(3):
+        try:
+            rospy.wait_for_service('/mycobot/detection_node/locate/bottle', timeout=3)
+        except rospy.ROSException as e:
+            rospy.loginfo(f"Detection service unavailable:\n{e}")
+            self.fail_msg()
+            return
+        
+        try:
+            detection_srv = rospy.ServiceProxy('/mycobot/detection_node/locate/bottle', DetectBottles)
+            selected_bottle = detection_srv()
 
-            try:
-                rospy.wait_for_service('/mycobot/detection_node/locate/bottle', timeout=3)
-            except rospy.ROSException as e:
-                rospy.loginfo(f"Detection service unavailable:\n{e}")
-                self.fail_msg()
-                return
-            
-            try:
-                detection_srv = rospy.ServiceProxy('/mycobot/detection_node/locate/bottle', DetectBottles)
-                selected_bottle = detection_srv()
+            if selected_bottle.result.data == 'success':
+                rospy.loginfo(f"Selected bottle coords [m]: x: {round(selected_bottle.pose.position.x,3)}, y: {round(selected_bottle.pose.position.y,2)}, z: {round(selected_bottle.pose.position.z,2)}")
+                detected_valid = True
 
-                if selected_bottle.result.data == 'success':
-                    rospy.loginfo(f"Selected bottle coords [m]: x: {round(selected_bottle.pose.position.x,3)}, y: {round(selected_bottle.pose.position.y,2)}, z: {round(selected_bottle.pose.position.z,2)}")
-                    detected_valid = True
-                    break
-
-            except rospy.ServiceException as e:
-                rospy.loginfo(f"Request detection failed:\n{e}")
-                self.fail_msg()
-                return
+        except rospy.ServiceException as e:
+            rospy.loginfo(f"Request detection failed:\n{e}")
+            self.fail_msg()
+            return
         
         if not detected_valid:
             rospy.loginfo(f'No viable bottle to pick: {selected_bottle.result.data}')
@@ -190,41 +190,30 @@ class PickPlaceRoutine():
             return
         
 
-        # BOX CENTRE
-        
-        angles_req.angles.data = [-75.41, -21.97, -61.69, -7.2, 0, 0]
-        angles_req.speed.data = 20
-        angles_req.timeout.data = 7
-
-        try:
-            rospy.wait_for_service('/mycobot/arm_control_node/arm/angles', timeout=3)
-        except rospy.ROSException as e:
-            rospy.loginfo(f"Send angles service unavailable:\n{e}")
-            self.fail_msg()
-            return
-
-        try:
-            angles_response = angles_srv(angles_req)
-
-        except rospy.ServiceException as e:
-            rospy.loginfo(f"Request move to box centre failed:\n{e}")
-            self.fail_msg()
-            return
-        
-
-        # PICKING X, Y, Z = 200
+        # PICKING X, Y, Z = 180
 
         coords_req = SendCoordsRequest()
         picking_x = 1000 * selected_bottle.pose.position.x - 10
         picking_y = 1000 * selected_bottle.pose.position.y
+
+        picking_distance = math.sqrt(picking_x**2 + picking_y**2)
+
+        if picking_distance > 240:
+
+            rospy.loginfo(f"Picking coordinates outside of arm's workspace")
+            self.fail_msg()
+            return
+
         rospy.loginfo(f'Moving to picking coords [mm]: x: {round(picking_x,0)}, y: {round(picking_y, 0)}')
         coords_req.pose.position.x = picking_x
         coords_req.pose.position.y = picking_y
-        coords_req.pose.position.z = 200
+        coords_req.pose.position.z = 180
         coords_req.pose.orientation.x = -180.0
-        coords_req.pose.orientation.y = 0.0
+        y_rot = int(7 * (picking_y + 220) / 100)
+        coords_req.pose.orientation.y = y_rot
+        rospy.loginfo(f'picking tilt angle: {y_rot}')
         coords_req.pose.orientation.z = -90.0
-        coords_req.speed.data = 5
+        coords_req.speed.data = 10
         coords_req.mode.data = 1
         coords_req.timeout.data = 7
 
@@ -340,98 +329,102 @@ class PickPlaceRoutine():
             rospy.loginfo(f"Request lowering tool failed:\n{e}")
             self.fail_msg()
             return
+
         
-        # ROTATE J4, J5
-        # PERPENDICULAR TO BOTTLE
+        # MOVE TO VERIFICATION POSITION
 
-        # joint, angle = self.get_joint(selected_bottle.pose.orientation.z, a_J1)
-        # angle_req.id.data = joint
-        # angle_req.angle.data = angle
-        # angle_req.speed.data = 5
-        
-        # rospy.wait_for_service('/mycobot/arm_control_node/arm/angle')
-        # try:
-        #     angle_response = angle_srv(angle_req)
-
-        # except rospy.ServiceException as e:
-        #     rospy.loginfo("Request move angle failed: %s"%e)
-        #     self.fail_msg()
-        #     return
-
-        # LIFT BOTTLE Z=220
-
-        coord_req.coord.data = 220
+        angles_req.angles.data = [-90, 0, -90, 90, 0, 0]
+        angles_req.speed.data = 20
 
         try:
-            rospy.wait_for_service('/mycobot/arm_control_node/arm/coord', timeout=3)
+            rospy.wait_for_service('/mycobot/arm_control_node/arm/angles', timeout=3)
         except rospy.ROSException as e:
-            rospy.loginfo(f"Send coord service unavailable:\n{e}")
+            rospy.loginfo(f"Send angles service unavailable:\n{e}")
             self.fail_msg()
             return
-
+        
         try:
-            coord_response = coord_srv(coord_req)
+            angles_response = angles_srv(angles_req)
 
         except rospy.ServiceException as e:
-            rospy.loginfo(f"Request lifting bottle failed:\n{e}")
+            rospy.loginfo(f"Request moving to verification position failed:\n{e}")
             self.fail_msg()
             return
-        
-        # # MOVE TO VERIFICATION POSITION
-
-        # angles_req.angles.data = [-90, 0, -90, 90, 0, 0]
-
-        # rospy.wait_for_service('/mycobot/arm_control_node/arm/angles')
-        # try:
-        #     angles_response = angles_srv(angles_req)
-
-        # except rospy.ServiceException as e:
-        #     rospy.loginfo("Request moving to verification position failed: %s"%e)
-        #     self.fail_msg()
-        #     return
         
         # VERIFY BOTTLE W ORIENTATION
         # DETECTION (create srv)
 
+        verify_req = VerifyPickingRequest()
+
+        try:
+            rospy.wait_for_service('/mycobot/detection_node/verify/picking', timeout=3)
+        except rospy.ROSException as e:
+            rospy.loginfo(f"Verify picking service unavailable:\n{e}")
+            self.fail_msg()
+            return
+        
+        try:
+            verify_srv = rospy.ServiceProxy('/mycobot/detection_node/verify/picking', VerifyPicking)
+            verify_response = verify_srv(verify_req)
+            rospy.loginfo(f"Picked: {verify_response.pick.data}, Orientation: {verify_response.orientation.data}")
+
+        except rospy.ServiceException as e:
+            rospy.loginfo(f"Request bottle picking verification failed:\n{e}")
+            self.fail_msg()
+            return
+        
 
 
         # MOVE TO PLACING POSITION. TOOL ROT (+-90)
         # ANGLES
 
-        # placing_rot = 90
-        
-        # angles_req.angles.data = [0, 0, -90, 90, 0, placing_rot]
+        if verify_response.pick.data:
 
-        # rospy.wait_for_service('/mycobot/arm_control_node/arm/angles')
-        # try:
-        #     angles_response = angles_srv(angles_req)
+            if verify_response.orientation.data == 0:
+                placing_rot = 90
 
-        # except rospy.ServiceException as e:
-        #     rospy.loginfo("Request moving to verification position failed: %s"%e)
-        #     self.fail_msg()
-        #     return
+            else:
+                placing_rot = -90
+            
+            angles_req.angles.data = [-90, -70, -57, 127, 0, placing_rot]
+
+            rospy.wait_for_service('/mycobot/arm_control_node/arm/angles')
+            try:
+                angles_response = angles_srv(angles_req)
+
+            except rospy.ServiceException as e:
+                rospy.loginfo(f"Request moving to verification position failed:\n{e}")
+                self.fail_msg()
+                return
+            
+        else:
+
+            rospy.loginfo(f"Bottle not picked")
+            self.fail_msg()
+            success = False
 
 
         # RELEASE BOTTLE
         # PUMP OFF
 
+        rospy.wait_for_service('/mycobot/arm_control_node/pump/off')
+        try:
+            pump_off_srv = rospy.ServiceProxy("/mycobot/arm_control_node/pump/off", Empty)
+            pump_off_srv(pump_req)
 
-        # rospy.wait_for_service('/mycobot/arm_control_node/pump/off')
-        # try:
-        #     pump_off_srv = rospy.ServiceProxy("/mycobot/arm_control_node/pump/off", Empty)
-        #     pump_off_srv(pump_req)
-
-        # except rospy.ServiceException as e:
-        #     rospy.loginfo("Request suction pump off failed:\n%s"%e)
-        #     self.fail_msg()
-        #     return
+        except rospy.ServiceException as e:
+            rospy.loginfo("Request suction pump off failed:\n%s"%e)
+            self.fail_msg()
+            return
         
 
         # END ACTION
 
-        self._result.result.data = True
-        rospy.loginfo('Pick and place: Succeeded')
-        self._as.set_succeeded(self._result)
+        if success:
+
+            self._result.result.data = True
+            rospy.loginfo('Pick and place: Succeeded')
+            self._as.set_succeeded(self._result)
 
 if __name__ == '__main__':
 

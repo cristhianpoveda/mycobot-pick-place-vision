@@ -1,7 +1,7 @@
 {
     "arm_to_cam_x": 0.015,
     "arm_to_cam_y": 0.22,
-    "arm_to_cam_z": 0.707,
+    "arm_to_cam_z": 0.75,
     "arm_to_cam_euler_z": 180,
     "bottle_lenght": 0.08,
     "pixel_search_lower": -3,

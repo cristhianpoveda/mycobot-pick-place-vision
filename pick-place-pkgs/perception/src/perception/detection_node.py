@@ -136,25 +136,29 @@ class ObjectDetector():
 
                 if lenght > self.MIN_B_T_DIST:
 
-                    valid = True
-
                     centre_coord.x = int(abs(thread_x + base_x) / 2)
                     centre_coord.y = int(abs(thread_y + base_y) / 2)
                     centre_coord.z = np.degrees(math.atan2((thread_y - base_y), (thread_x - base_x)))
 
-                    centres.append(copy(centre_coord))
-
-                    dist_centre = math.sqrt((centre_coord.x - 320)**2 + (centre_coord.y - 240)**2)
-
-                    distances_centre.append(dist_centre)
-
                     pose = self.get_pose(centre_coord)
 
-                    poses.append(pose)
+                    picking_distance = math.sqrt(pose.position.x**2 + pose.position.y**2)
 
-                    z = pose.position.z
+                    if picking_distance < 241:
 
-                    z_coords.append(z)
+                        valid = True
+
+                        centres.append(copy(centre_coord))
+
+                        dist_centre = math.sqrt((centre_coord.x - 320)**2 + (centre_coord.y - 240)**2)
+
+                        distances_centre.append(dist_centre)
+
+                        poses.append(pose)
+
+                        z = pose.position.z
+
+                        z_coords.append(z)
 
         if valid:
 
@@ -186,37 +190,42 @@ class ObjectDetector():
 
     def srv_detect(self, req=None):
 
+        response = DetectBottlesResponse()
+
         pose_3d_coord = Pose()
         result = String()
 
-        detections = self.model(self.image_np, conf=0.7, verbose=False)
-        keypoints = detections[0].keypoints.xy
+        for i in range(3):
 
-        if len(keypoints[0]) != 0:
+            detections = self.model(self.image_np, conf=0.7, verbose=False)
+            keypoints = detections[0].keypoints.xy
 
-            pose_3d_coord, pos_px_coord = self.get_cam_pose(keypoints)
+            if len(keypoints[0]) != 0:
 
-            if pos_px_coord.x == -1:
-                result.data = 'no accurate_detections'
+                pose_3d_coord, pos_px_coord = self.get_cam_pose(keypoints)
 
-            elif pose_3d_coord.position.x == -10:
-                result.data = 'no valid coord'
+                if pos_px_coord.x == -1:
+                    result.data = 'no accurate_detections'
 
-            elif not (-0.13 < pose_3d_coord.position.x < 0.13 and -0.27 < pose_3d_coord.position.y < -0.12):
-                result.data = 'outside box'
+                elif pose_3d_coord.position.x == -10:
+                    result.data = 'no valid coord'
+
+                elif not (-0.13 < pose_3d_coord.position.x < 0.13 and -0.27 < pose_3d_coord.position.y < -0.12):
+                    result.data = 'outside box'
+
+                else:
+                    
+                    result.data = 'success'
+
+                    if self.pub_image.get_num_connections() > 0:
+
+                        self.publish_image(pos_px_coord)
+
+                    break  
 
             else:
-                
-                result.data = 'success'
+                result.data = 'no detected bottles'
 
-                if self.pub_image.get_num_connections() > 0:
-
-                    self.publish_image(pos_px_coord)   
-
-        else:
-            result.data = 'no detected bottles'
-
-        response = DetectBottlesResponse()
         response.pose = pose_3d_coord
         response.result.data = result.data
 
@@ -224,41 +233,48 @@ class ObjectDetector():
     
     def srv_verify(self, req=None):
 
+        picked = False
         response = VerifyPickingResponse()
-        response.pick.data = False
-        response.orientation.data = -1
 
-        centre = Point()
+        for i in range(3):
 
-        detections = self.model(self.image_np, conf=0.7, verbose=False)
-        keypoints = detections[0].keypoints.xy
+            response.pick.data = False
+            response.orientation.data = -1
 
-        if len(keypoints[0]) != 0:
+            centre = Point()
 
-            for point in keypoints:
+            detections = self.model(self.image_np, conf=0.7, verbose=False)
+            keypoints = detections[0].keypoints.xy
 
-                thread_x = int(point[0][0])
-                thread_y = int(point[0][1])
-                base_x = int(point[1][0])
-                base_y = int(point[1][1])
+            if len(keypoints[0]) != 0:
 
-                if 190 < thread_x < 350 and 190 < base_x < 350 and 220 < thread_y < 300 and 220 < base_y < 300:
-                    
-                    centre.x = int(abs(thread_x + base_x) / 2)
-                    centre.y = int(abs(thread_y + base_y) / 2)
+                for point in keypoints:
 
-                    pos = self.get_pose(centre)
+                    thread_x = int(point[0][0])
+                    thread_y = int(point[0][1])
+                    base_x = int(point[1][0])
+                    base_y = int(point[1][1])
 
-                    if pos.position.z > 0.25:
+                    if 190 < thread_x < 350 and 190 < base_x < 350 and 220 < thread_y < 300 and 220 < base_y < 300:
+                        
+                        centre.x = int(abs(thread_x + base_x) / 2)
+                        centre.y = int(abs(thread_y + base_y) / 2)
 
-                        if thread_x < base_x:
-                            response.orientation.data = 180
+                        pos = self.get_pose(centre)
 
-                        else:
-                            response.orientation.data = 0
+                        if pos.position.z > 0.25:
 
-                        response.pick.data = True
-                        break
+                            if thread_x < base_x:
+                                response.orientation.data = 180
+
+                            else:
+                                response.orientation.data = 0
+
+                            response.pick.data = True
+                            picked = True
+                            break
+
+                if picked: break
 
         return response
         
