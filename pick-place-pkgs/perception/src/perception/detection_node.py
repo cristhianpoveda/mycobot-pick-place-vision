@@ -78,7 +78,7 @@ class ObjectDetector():
 
             for i in range(self.PIXEL_SEARCH_LOWER, self.PIXEL_SEARCH_UPPER):
 
-                new_x_idx = x_idx + i * self.points.point_step()
+                new_x_idx = x_idx + i * self.points.point_step
                 y_idx = new_x_idx + self.points.fields[1].offset
                 z_idx = new_x_idx + self.points.fields[2].offset
 
