@@ -329,6 +329,8 @@ class PickPlaceRoutine():
             rospy.loginfo(f"Request lowering tool failed:\n{e}")
             self.fail_msg()
             return
+        
+        rospy.sleep(1)
 
         
         # MOVE TO VERIFICATION POSITION
