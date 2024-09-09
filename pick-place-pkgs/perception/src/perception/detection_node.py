@@ -167,7 +167,7 @@ class ObjectDetector():
 
             for i, bottle_d in enumerate(distances_centre):
 
-                score = 0.5 * (1 - (bottle_d / max_dist)) + 0.5 * (z_coords[i] / max_z)
+                score = 0.5 * (1 - (bottle_d / max_dist)) + 0.5 * (1 - (z_coords[i] / max_z))
                 scores.append(score)
 
             selected_idx = scores.index(max(scores))
