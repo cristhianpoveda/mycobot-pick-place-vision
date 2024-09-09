@@ -311,7 +311,7 @@ class PickPlaceRoutine():
         tool_height = 1000 * selected_bottle.pose.position.z + 73.1
         rospy.loginfo(f'Tool picking height [mm]: {round(tool_height,1)}')
         coord_req.coord.data = tool_height
-        coord_req.speed.data = 10
+        coord_req.speed.data = 5
         coord_req.delay.data = 4
 
         try:
@@ -337,7 +337,7 @@ class PickPlaceRoutine():
 
         coord_req.id.data = 3
         coord_req.coord.data = 180
-        coord_req.speed.data = 10
+        coord_req.speed.data = 5
         coord_req.delay.data = 4
 
         try:
@@ -412,7 +412,7 @@ class PickPlaceRoutine():
             else:
                 placing_rot = -90
             
-            angles_req.angles.data = [-90, -70, -57, 127, 0, placing_rot]
+            angles_req.angles.data = [-90, -41, -73, 22, 0, placing_rot]
 
             rospy.wait_for_service('/mycobot/arm_control_node/arm/angles')
             try:
