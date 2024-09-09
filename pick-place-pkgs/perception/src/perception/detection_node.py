@@ -146,19 +146,21 @@ class ObjectDetector():
 
                     if picking_distance < 0.241:
 
-                        valid = True
-
-                        centres.append(copy(centre_coord))
-
-                        dist_centre = math.sqrt((centre_coord.x - 320)**2 + (centre_coord.y - 240)**2)
-
-                        distances_centre.append(dist_centre)
-
-                        poses.append(pose)
-
                         z = pose.position.z
 
-                        z_coords.append(z)
+                        if z > 0.025:
+
+                            valid = True
+
+                            centres.append(copy(centre_coord))
+
+                            dist_centre = math.sqrt((centre_coord.x - 320)**2 + (centre_coord.y - 240)**2)
+
+                            distances_centre.append(dist_centre)
+
+                            poses.append(pose)
+
+                            z_coords.append(z)
 
         if valid:
 
