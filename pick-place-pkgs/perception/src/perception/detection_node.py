@@ -142,17 +142,17 @@ class ObjectDetector():
 
                     pose = self.get_pose(centre_coord)
 
-                    picking_distance = math.sqrt(pose.position.x**2 + pose.position.y**2)
+                    z = pose.position.z
 
-                    prev_dist = math.sqrt((previous.previous.position.x - pose.position.x)**2 + (previous.previous.position.y - pose.position.y)**2)
+                    if pose.position.x < -0.15 and z > 0.025:
 
-                    if prev_dist > 0.02:
+                        picking_distance = math.sqrt(pose.position.x**2 + pose.position.y**2)
 
-                        if picking_distance < 0.241:
+                        prev_dist = math.sqrt((previous.previous.position.x - pose.position.x)**2 + (previous.previous.position.y - pose.position.y)**2)
 
-                            z = pose.position.z
+                        if prev_dist > 0.02:
 
-                            if z > 0.025:
+                            if picking_distance < 0.241:
 
                                 valid = True
 
