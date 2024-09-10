@@ -144,7 +144,7 @@ class ObjectDetector():
 
                     picking_distance = math.sqrt(pose.position.x**2 + pose.position.y**2)
 
-                    if (abs(previous.position.x) - abs(pose.position.x)) > 15 and (abs(previous.position.y) - abs(pose.position.y)) > 15:
+                    if (abs(previous.previous.position.x) - abs(pose.position.x)) > 15 and (abs(previous.previous.position.y) - abs(pose.position.y)) > 15:
 
                         if picking_distance < 0.241:
 
