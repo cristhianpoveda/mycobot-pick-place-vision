@@ -296,7 +296,7 @@ class PickPlaceRoutine():
             self.fail_msg()
             return
         
-        rospy.sleep(1)
+        rospy.sleep(2)
 
 
         # LIFT BOTTLE Z=180
