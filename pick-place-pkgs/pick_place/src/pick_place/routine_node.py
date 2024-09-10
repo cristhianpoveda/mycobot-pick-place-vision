@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 
+import random
 import rospy
 import math
 from pick_place_msgs.srv import VerifyPicking, VerifyPickingRequest, GetJoints, GetJointsRequest, DetectBottles, DetectBottlesRequest, SendCoords, SendCoordsRequest, SendCoord, SendCoordRequest, SendAngles, SendAnglesRequest, SendAngle, SendAngleRequest
@@ -393,8 +394,11 @@ class PickPlaceRoutine():
 
             else:
                 placing_rot = -90
+
+            rand_list = [-5,-4,-3,-2,-1,0,1,2,3,4,5]
+            rand_angle = random.choice(rand_list)
             
-            angles_req.angles.data = [-75, -25, -45, -21, 0, placing_rot]
+            angles_req.angles.data = [-75, -25, -45, -21, rand_angle, placing_rot]
 
             rospy.wait_for_service('/mycobot/arm_control_node/arm/angles')
             try:
