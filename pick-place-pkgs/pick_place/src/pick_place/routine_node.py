@@ -26,40 +26,6 @@ class PickPlaceRoutine():
 
     def shutdown_hook(self):
 
-        pump_off_req = EmptyRequest()
-
-        try:
-            rospy.wait_for_service('/mycobot/arm_control_node/pump/off', timeout=1)
-
-            try:
-                pump_off_srv = rospy.ServiceProxy("/mycobot/arm_control_node/pump/off", Empty)
-                pump_off_srv(pump_off_req)
-
-            except rospy.ServiceException as e:
-                rospy.loginfo("Request suction pump off failed:\n%s"%e)
-                self.fail_msg()
-                return
-            
-            angles_req = SendAnglesRequest()
-            angles_req.angles.data = [0, 0, 0, 0, 0, 0]
-            angles_req.speed.data = 30
-            angles_req.timeout.data = 7
-
-            try:
-                rospy.wait_for_service('/mycobot/arm_control_node/arm/angles')
-                try:
-                    angles_srv = rospy.ServiceProxy('/mycobot/arm_control_node/arm/angles', SendAngles)
-                    angles_srv(angles_req)
-
-                except rospy.ServiceException as e:
-                    rospy.loginfo("Request move angles failed: %s"%e)
-                    
-            except rospy.ROSException as e:
-                rospy.loginfo(f"Mycobot is not available:\n{e}")
-            
-        except rospy.ROSException as e:
-            rospy.loginfo(f"Mycobot is not available:\n{e}")
-
         rospy.loginfo(f"Finished: {node_name}")
 
     def fail_msg(self):

@@ -46,7 +46,10 @@ class ArmControl():
 
     def shutdown_hook(self):
 
-        rospy.sleep(10)
+        if self.mc.is_controller_connected() == 1:
+            
+            self.pump_off()
+            self.mc.send_angles([0,0,0,0,0,0],20)
 
         rospy.loginfo(f"Finished: {node_name}")
 
@@ -154,6 +157,15 @@ class ArmControl():
         rospy.sleep(self.CMD_STOP_TIME)
 
         return response
+    
+    def pump_off(self):
+
+        self.mc.set_basic_output(5, 1)
+        rospy.sleep(self.CMD_STOP_TIME)
+        self.mc.set_basic_output(2, 0)
+        rospy.sleep(self.PUMP_VENT_DELAY)
+        self.mc.set_basic_output(2, 1)
+        rospy.sleep(self.CMD_STOP_TIME)
 
     def pump_off_cb(self, req=None):
             
@@ -163,12 +175,7 @@ class ArmControl():
             rospy.loginfo(f"Mycobot is not available")
             return response
         
-        self.mc.set_basic_output(5, 1)
-        rospy.sleep(self.CMD_STOP_TIME)
-        self.mc.set_basic_output(2, 0)
-        rospy.sleep(self.PUMP_VENT_DELAY)
-        self.mc.set_basic_output(2, 1)
-        rospy.sleep(self.CMD_STOP_TIME)
+        self.pump_off()
 
         return response
 
