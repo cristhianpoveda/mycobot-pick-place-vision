@@ -1,3 +1,4 @@
+geometry_msgs/Pose previous
 ---
 geometry_msgs/Pose pose
 std_msgs/String result

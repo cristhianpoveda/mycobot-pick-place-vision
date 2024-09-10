@@ -108,7 +108,7 @@ class ObjectDetector():
 
         return pose
     
-    def get_cam_pose(self, keypoints):
+    def get_cam_pose(self, keypoints, previous):
         
         distances_centre = []
         centres = []
@@ -144,23 +144,25 @@ class ObjectDetector():
 
                     picking_distance = math.sqrt(pose.position.x**2 + pose.position.y**2)
 
-                    if picking_distance < 0.241:
+                    if (abs(previous.position.x) - abs(pose.position.x)) > 15 and (abs(previous.position.y) - abs(pose.position.y)) > 15:
 
-                        z = pose.position.z
+                        if picking_distance < 0.241:
 
-                        if z > 0.025:
+                            z = pose.position.z
 
-                            valid = True
+                            if z > 0.025:
 
-                            centres.append(copy(centre_coord))
+                                valid = True
 
-                            dist_centre = math.sqrt((centre_coord.x - 320)**2 + (centre_coord.y - 240)**2)
+                                centres.append(copy(centre_coord))
 
-                            distances_centre.append(dist_centre)
+                                dist_centre = math.sqrt((centre_coord.x - 320)**2 + (centre_coord.y - 240)**2)
 
-                            poses.append(pose)
+                                distances_centre.append(dist_centre)
 
-                            z_coords.append(z)
+                                poses.append(pose)
+
+                                z_coords.append(z)
 
         if valid:
 
@@ -190,7 +192,7 @@ class ObjectDetector():
         cv2.putText(self.image_np, label, (pose_px_coord.x, pose_px_coord.y+labelSize[1]+7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)
         self.pub_image.publish(self.bridge.cv2_to_imgmsg(self.image_np, "rgb8"))
 
-    def srv_detect(self, req=None):
+    def srv_detect(self, previous):
 
         response = DetectBottlesResponse()
 
@@ -204,7 +206,7 @@ class ObjectDetector():
 
             if len(keypoints[0]) != 0:
 
-                pose_3d_coord, pos_px_coord = self.get_cam_pose(keypoints)
+                pose_3d_coord, pos_px_coord = self.get_cam_pose(keypoints, previous)
 
                 if pos_px_coord.x == -1:
                     result.data = 'no accurate_detections'

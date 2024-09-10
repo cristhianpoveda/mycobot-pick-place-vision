@@ -2,14 +2,17 @@
 
 import rospy
 import math
-from pick_place_msgs.srv import VerifyPicking, VerifyPickingRequest, GetJoints, GetJointsRequest, DetectBottles, SendCoords, SendCoordsRequest, SendCoord, SendCoordRequest, SendAngles, SendAnglesRequest, SendAngle, SendAngleRequest
+from pick_place_msgs.srv import VerifyPicking, VerifyPickingRequest, GetJoints, GetJointsRequest, DetectBottles, DetectBottlesRequest, SendCoords, SendCoordsRequest, SendCoord, SendCoordRequest, SendAngles, SendAnglesRequest, SendAngle, SendAngleRequest
 import actionlib
 from pick_place_msgs.msg import PickPlaceAction, PickPlaceResult, PickPlaceFeedback
 from std_srvs.srv import Empty, EmptyRequest
+from geometry_msgs.msg import Pose
 
 class PickPlaceRoutine():
 
     def __init__(self, node_name):
+
+        self.not_picked = Pose()
 
         self._feedback = PickPlaceFeedback()
         self._result = PickPlaceResult()
@@ -138,8 +141,11 @@ class PickPlaceRoutine():
             return
         
         try:
+            detection_req = DetectBottlesRequest()
+            detection_req.previous = self.not_picked
+
             detection_srv = rospy.ServiceProxy('/mycobot/detection_node/locate/bottle', DetectBottles)
-            selected_bottle = detection_srv()
+            selected_bottle = detection_srv(detection_req)
 
             if selected_bottle.result.data == 'success':
                 rospy.loginfo(f"Selected bottle coords [m]: x: {round(selected_bottle.pose.position.x,3)}, y: {round(selected_bottle.pose.position.y,2)}, z: {round(selected_bottle.pose.position.z,2)}")
@@ -166,6 +172,7 @@ class PickPlaceRoutine():
 
         if picking_distance > 240:
 
+            self.not_picked = selected_bottle.pose
             rospy.loginfo(f"Picking coordinates outside of arm's workspace")
             self.fail_msg()
             return
@@ -372,6 +379,9 @@ class PickPlaceRoutine():
 
         if verify_response.pick.data:
 
+            self.not_picked.position.x = 0
+            self.not_picked.position.y = 0
+
             if verify_response.orientation.data == 0:
                 placing_rot = 90
 
@@ -391,6 +401,7 @@ class PickPlaceRoutine():
             
         else:
 
+            self.not_picked = selected_bottle.pose
             rospy.loginfo(f"Bottle not picked")
             self.fail_msg()
             success = False
