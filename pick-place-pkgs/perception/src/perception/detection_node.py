@@ -144,7 +144,7 @@ class ObjectDetector():
 
                     z = pose.position.z
 
-                    if pose.position.x < -0.15 and z > 0.025:
+                    if pose.position.y < -0.15 and z > 0.025:
 
                         picking_distance = math.sqrt(pose.position.x**2 + pose.position.y**2)
 
