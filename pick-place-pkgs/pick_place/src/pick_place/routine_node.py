@@ -388,7 +388,7 @@ class PickPlaceRoutine():
             else:
                 placing_rot = -90
             
-            angles_req.angles.data = [-90, -41, -73, 22, 0, placing_rot]
+            angles_req.angles.data = [-75, -25, -45, -21, 0, placing_rot]
 
             rospy.wait_for_service('/mycobot/arm_control_node/arm/angles')
             try:
