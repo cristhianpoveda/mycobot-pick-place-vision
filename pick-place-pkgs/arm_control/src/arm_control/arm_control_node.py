@@ -46,6 +46,8 @@ class ArmControl():
 
     def shutdown_hook(self):
 
+        rospy.sleep(10)
+
         rospy.loginfo(f"Finished: {node_name}")
 
     def get_joints_cb(self, req):
@@ -74,8 +76,6 @@ class ArmControl():
 
         rospy.sleep(5)
 
-        rospy.loginfo(f"Current: {self.mc.get_coords()}")
-
         if self.mc.is_in_position(coordinate_list, 1) != 1:
             response.status.data = False
 
@@ -99,8 +99,6 @@ class ArmControl():
 
         current_coords = self.mc.get_coords()
 
-        rospy.loginfo(f"Current: {current_coords}")
-
         if abs(current_coords[coord.id.data] - coord.coord.data) > self.POSITION_TOLERANCE:
             response.status.data = False
 
@@ -119,8 +117,6 @@ class ArmControl():
         self.mc.sync_send_angles(angles.angles.data, angles.speed.data, angles.timeout.data)
 
         rospy.sleep(4)
-
-        rospy.loginfo(f"Current: {self.mc.get_coords()}")
 
         if self.mc.is_in_position(angles.angles.data, 0) != 1:
             response.status.data = False

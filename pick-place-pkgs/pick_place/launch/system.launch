@@ -28,4 +28,9 @@
         <arg name="robot" value="$(arg robot)"/>
     </include>
 
+    <!-- Pick place routine client -->
+    <include file="$(find pick_place)/launch/routine_client_node.launch">
+        <arg name="robot" value="$(arg robot)"/>
+    </include>
+
 </launch>
