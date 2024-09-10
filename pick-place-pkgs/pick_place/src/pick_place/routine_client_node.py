@@ -2,7 +2,7 @@
 
 import rospy
 import actionlib
-from intersection_msgs.msg import PickPlaceAction, PickPlaceGoal
+from pick_place_msgs.msg import PickPlaceAction, PickPlaceGoal
 from std_srvs.srv import Empty, EmptyResponse
 
 class SimulationClient():
