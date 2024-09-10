@@ -274,7 +274,7 @@ class PickPlaceRoutine():
 
         coord_req = SendCoordRequest()
         coord_req.id.data = 3
-        tool_height = 1000 * selected_bottle.pose.position.z + 73.1
+        tool_height = 1000 * selected_bottle.pose.position.z + 70
         rospy.loginfo(f'Tool picking height [mm]: {round(tool_height,1)}')
         coord_req.coord.data = tool_height
         coord_req.speed.data = 5
