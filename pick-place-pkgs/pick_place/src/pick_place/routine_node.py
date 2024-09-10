@@ -286,7 +286,7 @@ class PickPlaceRoutine():
         if tool_height < 100:
             rospy.loginfo(f'tool height set to min: 100mm')
             tool_height = 100
-        if picking_x < 0:
+        if picking_x < -20:
             rospy.loginfo(f'5 mm higher for negative picking')
             tool_height += 5
         rospy.loginfo(f'Tool picking height [mm]: {round(tool_height,1)}')
@@ -395,7 +395,7 @@ class PickPlaceRoutine():
             else:
                 placing_rot = -90
 
-            rand_list = [-5,-4,-3,-2,-1,0,1,2,3,4,5]
+            rand_list = [-10,-5,0,5,10]
             rand_angle = random.choice(rand_list)
             
             angles_req.angles.data = [-75, -25, -45, -21, rand_angle, placing_rot]
