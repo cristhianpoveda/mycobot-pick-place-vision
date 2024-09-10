@@ -165,7 +165,7 @@ class PickPlaceRoutine():
         # PICKING X, Y, Z = 180
 
         coords_req = SendCoordsRequest()
-        picking_x = 1000 * selected_bottle.pose.position.x - 10
+        picking_x = 1000 * selected_bottle.pose.position.x
         picking_y = 1000 * selected_bottle.pose.position.y
 
         picking_distance = math.sqrt(picking_x**2 + picking_y**2)
