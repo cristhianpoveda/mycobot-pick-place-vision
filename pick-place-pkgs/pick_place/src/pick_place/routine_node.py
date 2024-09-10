@@ -182,7 +182,7 @@ class PickPlaceRoutine():
         coords_req.pose.position.y = picking_y
         coords_req.pose.position.z = 180
         coords_req.pose.orientation.x = -180.0
-        y_rot = int(7 * (picking_y + 220) / 100)
+        y_rot = int(10 * (picking_y + 220) / 100)
         coords_req.pose.orientation.y = y_rot
         rospy.loginfo(f'picking tilt angle: {y_rot}')
         coords_req.pose.orientation.z = -90.0
