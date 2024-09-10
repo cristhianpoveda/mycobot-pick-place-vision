@@ -144,6 +144,8 @@ class ObjectDetector():
 
                     picking_distance = math.sqrt(pose.position.x**2 + pose.position.y**2)
 
+                    rospy.loginfo(f"px: {abs(previous.previous.position.x)}, x: {abs(pose.position.x)}, py: {abs(previous.previous.position.y)}, y: {abs(pose.position.y)}")
+
                     if (abs(previous.previous.position.x) - abs(pose.position.x)) > 0.015 or (abs(previous.previous.position.y) - abs(pose.position.y)) > 0.015:
 
                         if picking_distance < 0.241:
