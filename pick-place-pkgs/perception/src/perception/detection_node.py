@@ -273,9 +273,9 @@ class ObjectDetector():
                         pos_base = self.get_pose(base)
                         pos_thread = self.get_pose(thread)
 
-                        rospy.loginfo(f"base x: {pos_base.position.x}, z: {pos_base.position.z}\nthread x: {pos_thread.position.x}, z: {pos_thread.position.z}")
-
                         if pos_centre.position.z > 0.25:
+
+                            rospy.loginfo(f"base x: {pos_base.position.x}, z: {pos_base.position.z}\nthread x: {pos_thread.position.x}, z: {pos_thread.position.z}")
 
                             theta = (abs(np.degrees(math.atan(abs(pos_base.position.z - 0.315) / abs(pos_base.position.x + 0.061)))) + abs(np.degrees(math.atan(abs(pos_thread.position.z - 0.315) / abs(pos_thread.position.x + 0.061))))) / 2
 
