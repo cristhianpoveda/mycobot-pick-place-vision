@@ -1,4 +1,5 @@
 ---
 std_msgs/Bool result
+std_msgs/Bool failure
 ---
 std_msgs/String feedback
