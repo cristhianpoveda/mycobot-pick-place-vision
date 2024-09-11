@@ -12,6 +12,8 @@ class ArmControl():
         self.POSITION_TOLERANCE = rospy.get_param("~position_tolerance")
         self.CMD_STOP_TIME = rospy.get_param("~cmd_stop_time")
         self.PUMP_VENT_DELAY = rospy.get_param("~pump_vent_delay")
+
+        self.pump = False
         
         self.mc = MyCobot("/dev/ttyACM0", 115200)
 
@@ -73,6 +75,8 @@ class ArmControl():
             rospy.loginfo(f"Mycobot is not available")
             response.status.data = False
             return response
+        
+        if not self.pump: self.mc.set_color(255,128,0)
 
         coordinate_list = [coords.pose.position.x, coords.pose.position.y, coords.pose.position.z, coords.pose.orientation.x, coords.pose.orientation.y, coords.pose.orientation.z]
         self.mc.sync_send_coords(coordinate_list, coords.speed.data, coords.mode.data, coords.timeout.data)
@@ -83,6 +87,8 @@ class ArmControl():
             response.status.data = False
 
         response.current_pos.data = self.mc.get_coords()
+
+        if not self.pump: self.mc.set_color(0,255,0)
         
         return response
     
@@ -95,6 +101,8 @@ class ArmControl():
             rospy.loginfo(f"Mycobot is not available")
             response.status.data = False
             return response
+        
+        if not self.pump: self.mc.set_color(255,128,0)
 
         self.mc.send_coord(coord.id.data, coord.coord.data, coord.speed.data)
 
@@ -104,6 +112,8 @@ class ArmControl():
 
         if abs(current_coords[coord.id.data] - coord.coord.data) > self.POSITION_TOLERANCE:
             response.status.data = False
+
+        if not self.pump: self.mc.set_color(0,255,0)
 
         return response
     
@@ -116,6 +126,8 @@ class ArmControl():
             rospy.loginfo(f"Mycobot is not available")
             response.status.data = False
             return response
+        
+        if not self.pump: self.mc.set_color(255,128,0)
 
         self.mc.sync_send_angles(angles.angles.data, angles.speed.data, angles.timeout.data)
 
@@ -123,6 +135,8 @@ class ArmControl():
 
         if self.mc.is_in_position(angles.angles.data, 0) != 1:
             response.status.data = False
+
+        if not self.pump: self.mc.set_color(0,255,0)
 
         return response
 
@@ -136,6 +150,8 @@ class ArmControl():
             response.status.data = False
             return response
         
+        if not self.pump: self.mc.set_color(255,128,0)
+        
         self.mc.send_angle(angle.id.data, angle.angle.data, angle.speed.data)
 
         rospy.sleep(3)
@@ -143,11 +159,16 @@ class ArmControl():
         if self.mc.get_angles()[5] - angle.angle.data > 5:
             response.status.data = False
 
+        if not self.pump: self.mc.set_color(0,255,0)
+
         return response
     
     def pump_on_cb(self, req=None):
 
         response = EmptyResponse()
+
+        self.mc.set_color(255,0,0)
+        self.pump = True
         
         if self.mc.is_controller_connected() != 1:
             rospy.loginfo(f"Mycobot is not available")
@@ -166,6 +187,9 @@ class ArmControl():
         rospy.sleep(self.PUMP_VENT_DELAY)
         self.mc.set_basic_output(2, 1)
         rospy.sleep(self.CMD_STOP_TIME)
+
+        self.mc.set_color(0,255,0)
+        self.pump = True
 
     def pump_off_cb(self, req=None):
             
