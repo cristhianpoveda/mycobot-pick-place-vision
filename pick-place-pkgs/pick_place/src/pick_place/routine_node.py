@@ -286,7 +286,7 @@ class PickPlaceRoutine():
         if tool_height < 100:
             rospy.loginfo(f'tool height set to min: 100mm')
             tool_height = 100
-        if picking_x < -20 or picking_y < -210:
+        if picking_x < 20 or picking_y < -210:
             rospy.loginfo(f'5 mm higher for negative picking')
             tool_height += 5
         rospy.loginfo(f'Tool picking height [mm]: {round(tool_height,1)}')
