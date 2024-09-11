@@ -34,6 +34,7 @@ class PickPlaceRoutine():
 
     def fail_msg(self):
         self._result.result.data = False
+        self._result.failure.data = True
         rospy.loginfo('Pick and place: Failed')
         self._as.set_aborted(self._result)
 
@@ -74,26 +75,6 @@ class PickPlaceRoutine():
             a_j6t = 0
 
         return a_j6t
-    
-
-    def get_joint(self, bottle, a_J1):
-
-        if bottle > 0:
-            rot = - (180 - bottle)
-        else:
-            rot = bottle
-
-        relative = abs(a_J1 - rot)
-
-        if 45 < relative < 135:
-            joint = 5
-            angle = 1.2
-
-        else:
-            joint = 4
-            angle = 1.8
-
-        return joint, angle
     
 
     def routine_cb(self, req=None):
@@ -456,7 +437,9 @@ class PickPlaceRoutine():
 
             self.not_picked = selected_bottle.pose
             rospy.loginfo(f"Bottle not picked")
-            self.fail_msg()
+            self._result.result.data = False
+            self._result.failure.data = False
+            self._as.set_aborted(self._result)
             success = False
 
 
