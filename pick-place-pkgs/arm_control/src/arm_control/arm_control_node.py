@@ -189,7 +189,7 @@ class ArmControl():
         rospy.sleep(self.CMD_STOP_TIME)
 
         self.mc.set_color(0,255,0)
-        self.pump = True
+        self.pump = False
 
     def pump_off_cb(self, req=None):
             
