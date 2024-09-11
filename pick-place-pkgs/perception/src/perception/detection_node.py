@@ -245,9 +245,12 @@ class ObjectDetector():
         for i in range(3):
 
             response.pick.data = False
+            response.rotation.data = -1
             response.orientation.data = -1
 
             centre = Point()
+            base = Point()
+            thread = Point()
 
             detections = self.model(self.image_np, conf=0.7, verbose=False)
             keypoints = detections[0].keypoints.xy
@@ -256,25 +259,35 @@ class ObjectDetector():
 
                 for point in keypoints:
 
-                    thread_x = int(point[0][0])
-                    thread_y = int(point[0][1])
-                    base_x = int(point[1][0])
-                    base_y = int(point[1][1])
+                    thread.x = int(point[0][0])
+                    thread.y = int(point[0][1])
+                    base.x = int(point[1][0])
+                    base.y = int(point[1][1])
 
-                    if 190 < thread_x < 350 and 190 < base_x < 350 and 220 < thread_y < 300 and 220 < base_y < 300:
+                    if 190 < thread.x < 350 and 190 < base.x < 350 and 220 < thread.y < 300 and 220 < base.y < 300:
                         
-                        centre.x = int(abs(thread_x + base_x) / 2)
-                        centre.y = int(abs(thread_y + base_y) / 2)
+                        centre.x = int(abs(thread.x + base.x) / 2)
+                        centre.y = int(abs(thread.y + base.y) / 2)
 
-                        pos = self.get_pose(centre)
+                        pos_centre = self.get_pose(centre)
+                        pos_base = self.get_pose(base)
+                        pos_thread = self.get_pose(thread)
 
-                        if pos.position.z > 0.25:
+                        if pos_centre.position.z > 0.25:
 
-                            if thread_x < base_x:
-                                response.orientation.data = 180
+                            theta = (abs(np.degrees(math.atan(abs(pos_base.position.z - 0.315) / abs(pos_base.position.x + 0.061)))) + abs(np.degrees(math.atan(abs(pos_thread.position.z - 0.315) / abs(pos_thread.position.x + 0.061))))) / 2
+
+                            if (pos_base.position.x > pos_thread.position.x and pos_base.position.z > pos_thread.position.z) or (pos_base.position.x < pos_thread.position.x and pos_base.position.z < pos_thread.position.z):
+
+                                theta = -theta
+
+                            response.rotation.data = theta
+
+                            if thread.x < base.x:
+                                response.orientation.data = 180 - theta
 
                             else:
-                                response.orientation.data = 0
+                                response.orientation.data = 0 - theta
 
                             response.pick.data = True
                             picked = True

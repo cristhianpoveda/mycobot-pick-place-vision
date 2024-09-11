@@ -372,7 +372,7 @@ class PickPlaceRoutine():
         try:
             verify_srv = rospy.ServiceProxy('/mycobot/detection_node/verify/picking', VerifyPicking)
             verify_response = verify_srv(verify_req)
-            rospy.loginfo(f"Picked: {verify_response.pick.data}, Orientation: {verify_response.orientation.data}")
+            rospy.loginfo(f"Picked: {verify_response.pick.data}, Rotation: {round(verify_response.rotation.data,1)}, Orientation: {round(verify_response.orientation.data,1)}")
 
         except rospy.ServiceException as e:
             rospy.loginfo(f"Request bottle picking verification failed:\n{e}")
@@ -386,14 +386,53 @@ class PickPlaceRoutine():
 
         if verify_response.pick.data:
 
-            self.not_picked.position.x = 0
-            self.not_picked.position.y = 0
+            if abs(verify_response.rotation.data) > 3:
 
-            if verify_response.orientation.data == 0:
-                placing_rot = 90
+                # ROTATE FOR PARALLEL PICKING
+
+                angle_req.id.data = 6
+                angle_req.angle.data = verify_response.rotation.data
+
+                rospy.loginfo(f'Rotating for parallel picking {round(verify_response.rotation.data,0)}°')
+
+                try:
+                    rospy.wait_for_service('/mycobot/arm_control_node/arm/angle', timeout=3)
+                except rospy.ROSException as e:
+                    rospy.loginfo(f"Send angle service unavailable:\n{e}")
+                    self.fail_msg()
+                    return
+
+                try:
+                    angle_response = angle_srv(angle_req)
+
+                except rospy.ServiceException as e:
+                    rospy.loginfo(f"Request move angle failed:\n{e}")
+                    self.fail_msg()
+                    return
+
+                # VERIFY AGAIN
+
+                try:
+                    rospy.wait_for_service('/mycobot/detection_node/verify/picking', timeout=3)
+                except rospy.ROSException as e:
+                    rospy.loginfo(f"Verify picking service unavailable:\n{e}")
+                    self.fail_msg()
+                    return
+                
+                try:
+                    verify_response = verify_srv(verify_req)
+                    rospy.loginfo(f"Second verification\nPicked: {verify_response.pick.data}, Rotation: {round(verify_response.rotation.data,1)}, Orientation: {round(verify_response.orientation.data,1)}")
+
+                except rospy.ServiceException as e:
+                    rospy.loginfo(f"Request bottle picking verification failed:\n{e}")
+                    self.fail_msg()
+                    return
+
+            if verify_response.orientation.data < 90:
+                placing_rot = 90 - verify_response.orientation.data
 
             else:
-                placing_rot = -90
+                placing_rot = -90 + (180 - verify_response.orientation.data)
 
             rand_list = [-95,-80,-75,-60,-55]
             rand_angle = random.choice(rand_list)
@@ -409,6 +448,9 @@ class PickPlaceRoutine():
                 rospy.loginfo(f"Request moving to verification position failed:\n{e}")
                 self.fail_msg()
                 return
+            
+            self.not_picked.position.x = 0
+            self.not_picked.position.y = 0
             
         else:
 
