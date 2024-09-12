@@ -148,7 +148,7 @@ class PickPlaceRoutine():
 
         coords_req = SendCoordsRequest()
         picking_x = 1000 * selected_bottle.pose.position.x
-        picking_y = 1000 * selected_bottle.pose.position.y + 2
+        picking_y = 1000 * selected_bottle.pose.position.y
 
         picking_distance = math.sqrt(picking_x**2 + picking_y**2)
 
@@ -269,11 +269,11 @@ class PickPlaceRoutine():
             tool_height = 100
         
         if picking_x < 0 or picking_y < -210:
-            rospy.loginfo(f'5 mm higher for negative picking')
-            tool_height += 5
-        elif picking_x < 20:
-            rospy.loginfo(f'4 mm higher for central picking')
+            rospy.loginfo(f'4 mm higher for negative picking')
             tool_height += 4
+        elif picking_x < 20:
+            rospy.loginfo(f'3 mm higher for central picking')
+            tool_height += 3
 
         rospy.loginfo(f'Tool picking height [mm]: {round(tool_height,1)}')
         coord_req.coord.data = tool_height
@@ -296,7 +296,7 @@ class PickPlaceRoutine():
             self.fail_msg()
             return
         
-        rospy.sleep(2)
+        rospy.sleep(3)
 
 
         # LIFT BOTTLE Z=180
