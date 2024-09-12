@@ -276,6 +276,8 @@ class PickPlaceRoutine():
             self.fail_msg()
             return
         
+        rospy.sleep(3)
+        
         
         # TURN ON PUMP
 
@@ -297,7 +299,7 @@ class PickPlaceRoutine():
             self.fail_msg()
             return
         
-        rospy.sleep(3)
+        rospy.sleep(2)
 
 
         # LIFT BOTTLE Z=180
