@@ -130,7 +130,7 @@ class PickPlaceRoutine():
             selected_bottle = detection_srv(detection_req)
 
             if selected_bottle.result.data == 'success':
-                rospy.loginfo(f"Selected bottle coords [m]: x: {round(selected_bottle.pose.position.x,3)}, y: {round(selected_bottle.pose.position.y,2)}, z: {round(selected_bottle.pose.position.z,2)}")
+                rospy.loginfo(f"Selected bottle coords [m]: x: {round(selected_bottle.pose.position.x,3)}, y: {round(selected_bottle.pose.position.y,3)}, z: {round(selected_bottle.pose.position.z,3)}")
                 detected_valid = True
 
         except rospy.ServiceException as e:
@@ -148,7 +148,7 @@ class PickPlaceRoutine():
 
         coords_req = SendCoordsRequest()
         picking_x = 1000 * selected_bottle.pose.position.x
-        picking_y = 1000 * selected_bottle.pose.position.y + 4
+        picking_y = 1000 * selected_bottle.pose.position.y + 2
 
         picking_distance = math.sqrt(picking_x**2 + picking_y**2)
 
