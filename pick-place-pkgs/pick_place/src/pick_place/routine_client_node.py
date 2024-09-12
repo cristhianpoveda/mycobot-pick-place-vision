@@ -55,7 +55,8 @@ class SimulationClient():
             return
         
     def abort_cb(self, req=None):
-
+        
+        self.failure = True
         self.stop_operation("Requested by user")
         return self.empty_response
 
