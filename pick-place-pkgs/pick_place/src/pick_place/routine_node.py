@@ -161,7 +161,7 @@ class PickPlaceRoutine():
 
         rospy.loginfo(f'Moving to picking coords [mm]: x: {round(picking_x,0)}, y: {round(picking_y, 0)}')
         coords_req.pose.position.x = picking_x
-        coords_req.pose.position.y = picking_y
+        coords_req.pose.position.y = picking_y - 4
         coords_req.pose.position.z = 180
         coords_req.pose.orientation.x = -180.0
         y_rot = int(10 * (picking_y + 220) / 100)
