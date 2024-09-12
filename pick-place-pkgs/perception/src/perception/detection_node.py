@@ -288,7 +288,7 @@ class ObjectDetector():
                                 x_keypoint = pos_thread.position.x
                                 ref_z = 0.312
 
-                            theta = abs(np.degrees(math.atan((z_keypoint - ref_z) / (x_keypoint - 0.061))))
+                            theta = abs(np.degrees(math.atan(abs(z_keypoint - ref_z) / abs(x_keypoint + 0.061))))
 
                             if (pos_base.position.x > pos_thread.position.x and pos_base.position.z > pos_thread.position.z) or (pos_base.position.x < pos_thread.position.x and pos_base.position.z < pos_thread.position.z):
 
