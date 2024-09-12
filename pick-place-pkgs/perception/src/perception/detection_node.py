@@ -273,7 +273,7 @@ class ObjectDetector():
                         pos_base = self.get_pose(base)
                         pos_thread = self.get_pose(thread)
 
-                        if pos_centre.position.z > 0.25:
+                        if pos_centre.position.z > 0.25 and (pos_base.position.z > 0.25 or pos_thread.position.z > 0.25):
 
                             rospy.loginfo(f"base x: {pos_base.position.x}, z: {pos_base.position.z}\nthread x: {pos_thread.position.x}, z: {pos_thread.position.z}")
 
@@ -281,14 +281,14 @@ class ObjectDetector():
 
                                 z_keypoint = pos_base.position.z
                                 x_keypoint = pos_base.position.x
-                                ref_z = 0.318
+                                z_centre = pos_centre.position.z
 
                             else:
                                 z_keypoint = pos_thread.position.z
                                 x_keypoint = pos_thread.position.x
-                                ref_z = 0.312
+                                z_centre = pos_centre.position.z - 0.004
 
-                            theta = abs(np.degrees(math.atan(abs(z_keypoint - ref_z) / abs(x_keypoint + 0.061))))
+                            theta = abs(np.degrees(math.atan(abs(z_keypoint - z_centre) / abs(x_keypoint + 0.061))))
 
                             if (pos_base.position.x > pos_thread.position.x and pos_base.position.z > pos_thread.position.z) or (pos_base.position.x < pos_thread.position.x and pos_base.position.z < pos_thread.position.z):
 
