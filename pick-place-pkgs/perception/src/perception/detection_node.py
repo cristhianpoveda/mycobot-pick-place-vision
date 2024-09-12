@@ -277,7 +277,18 @@ class ObjectDetector():
 
                             rospy.loginfo(f"base x: {pos_base.position.x}, z: {pos_base.position.z}\nthread x: {pos_thread.position.x}, z: {pos_thread.position.z}")
 
-                            theta = (abs(np.degrees(math.atan(abs(pos_base.position.z - 0.315) / abs(pos_base.position.x + 0.061)))) + abs(np.degrees(math.atan(abs(pos_thread.position.z - 0.315) / abs(pos_thread.position.x + 0.061))))) / 2
+                            if pos_base.position.z > pos_thread.position.z:
+
+                                z_keypoint = pos_base.position.z
+                                x_keypoint = pos_base.position.x
+                                ref_z = 0.318
+
+                            else:
+                                z_keypoint = pos_thread.position.z
+                                x_keypoint = pos_thread.position.x
+                                ref_z = 0.312
+
+                            theta = abs(np.degrees(math.atan((z_keypoint - ref_z) / (x_keypoint - 0.061))))
 
                             if (pos_base.position.x > pos_thread.position.x and pos_base.position.z > pos_thread.position.z) or (pos_base.position.x < pos_thread.position.x and pos_base.position.z < pos_thread.position.z):
 
