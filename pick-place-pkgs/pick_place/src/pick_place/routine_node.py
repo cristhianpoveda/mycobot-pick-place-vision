@@ -238,27 +238,7 @@ class PickPlaceRoutine():
             self.fail_msg()
             return
 
-        # TURN ON PUMP
-
-        pump_req = EmptyRequest()
-
-        try:
-            rospy.wait_for_service('/mycobot/arm_control_node/pump/on', timeout=3)
-        except rospy.ROSException as e:
-            rospy.loginfo(f"Turn on pump service unavailable:\n{e}")
-            self.fail_msg()
-            return
-
-        try:
-            pump_on_srv = rospy.ServiceProxy('/mycobot/arm_control_node/pump/on', Empty)
-            pump_on_srv(pump_req)
-
-        except rospy.ServiceException as e:
-            rospy.loginfo(f"Request suction pump on failed:\n{e}")
-            self.fail_msg()
-            return
-
-
+        
         # LOWER TOOL Z = Zd + 73.1
 
         coord_req = SendCoordRequest()
@@ -293,6 +273,27 @@ class PickPlaceRoutine():
 
         except rospy.ServiceException as e:
             rospy.loginfo(f"Request lowering tool failed:\n{e}")
+            self.fail_msg()
+            return
+        
+        
+        # TURN ON PUMP
+
+        pump_req = EmptyRequest()
+
+        try:
+            rospy.wait_for_service('/mycobot/arm_control_node/pump/on', timeout=3)
+        except rospy.ROSException as e:
+            rospy.loginfo(f"Turn on pump service unavailable:\n{e}")
+            self.fail_msg()
+            return
+
+        try:
+            pump_on_srv = rospy.ServiceProxy('/mycobot/arm_control_node/pump/on', Empty)
+            pump_on_srv(pump_req)
+
+        except rospy.ServiceException as e:
+            rospy.loginfo(f"Request suction pump on failed:\n{e}")
             self.fail_msg()
             return
         
