@@ -23,6 +23,7 @@ class SimulationClient():
         self.goal = PickPlaceGoal()
 
         self.work_srv = rospy.Service('~start/stop', Empty, self.work_state_cb)
+        self.abort_srv = rospy.Service('~abort', Empty, self.abort_cb)
         self.empty_response = EmptyResponse()
 
         rospy.loginfo("Initialized: %s", node_name)
@@ -31,7 +32,11 @@ class SimulationClient():
 
             self.action_request()
 
-    def stop_operation(self):
+    def stop_operation(self, msg):
+
+        rospy.loginfo(f"ABORTING OPERATION: {msg}")
+
+        self.routine_client.cancel_all_goals()
 
         pump_req = EmptyRequest()
 
@@ -48,25 +53,11 @@ class SimulationClient():
         except rospy.ServiceException as e:
             rospy.loginfo(f"Request suction pump off failed:\n{e}")
             return
+        
+    def abort_cb(self, req=None):
 
-        angles_req = SendAnglesRequest()
-        angles_req.angles.data = [0, 0, 0, 0, 0, 0]
-        angles_req.speed.data = 30
-        angles_req.timeout.data = 7
-
-        try:
-            rospy.wait_for_service('/mycobot/arm_control_node/arm/angles', timeout=3)
-        except rospy.ROSException as e:
-            rospy.loginfo(f"Send angles service unavailable:\n{e}")
-            return
-
-        try:
-            angles_srv = rospy.ServiceProxy('/mycobot/arm_control_node/arm/angles', SendAngles)
-            angles_response = angles_srv(angles_req)
-
-        except rospy.ServiceException as e:
-            rospy.loginfo(f"Request move angles failed:\n{e}")
-            return
+        self.stop_operation("Requested by user")
+        return self.empty_response
 
     def action_request(self):
 
@@ -82,9 +73,8 @@ class SimulationClient():
 
             if action_result.failure.data: 
 
-                rospy.loginfo(f"STOPPING OPERATION: unknown failure")
                 self.failure = True
-                self.stop_operation()
+                self.stop_operation("Undefined failure")
 
         else:
             pass
